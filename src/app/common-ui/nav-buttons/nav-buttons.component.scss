@@ -1,0 +1,42 @@
+.nav-buttons-container {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.nav-button {
+  padding: 8px 0; 
+  color: #3e4361e6;
+  text-decoration: none;
+  font-weight: 500;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.nav-button:hover {
+  color: #2a2f4de6;
+}
+
+.nav-button.active {
+  color: #191C30E6;
+}
+
+.nav-button.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #191C30E6;
+  animation: underline 0.3s ease;
+}
+
+@keyframes underline {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}

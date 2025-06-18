@@ -1,0 +1,24 @@
+.popup__title{
+    font-weight: 700;
+    color:#191C30E6 ;
+}
+.popup__button{
+    padding: 13px 23px;
+    color: #526ED3;
+    font-weight: 500;
+    border: 1px solid rgb(171, 171, 171);
+    border-radius: 12px;
+    margin-top: 40px;
+}
+h3{
+    color: #1B1F3BA6;
+}
+.popup__grid{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+}
+.popup__col{
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}

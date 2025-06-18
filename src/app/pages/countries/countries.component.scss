@@ -1,0 +1,122 @@
+.form__search_countries {
+  .wrapper__search_countries {
+    position: relative;
+    width: 270px;
+    
+    .search_countries {
+      width: 100%;
+      height: 40px;
+      padding: 0 30px 0 35px; 
+      border: none;
+      border-radius: 12px;
+      background: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      font-size: 14px;
+      outline: none;
+      
+      &::placeholder {
+        color: #999;
+      }
+    }
+    
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+/* Основные стили таблицы */
+.table-container {
+  width: 100%;
+  overflow: auto;
+}
+
+.countries-table {
+  width: 100%;
+  max-height: 550px;
+}
+
+/* Стили строк */
+.mat-row {
+  height: 85px;
+}
+
+/* Стили заголовков */
+.mat-header-row {
+  height: 56px;
+  background-color: #f8f9fa;
+}
+
+/* Стили ячеек */
+.mat-cell, .mat-header-cell {
+  padding: 0 16px;
+  font-size: 14px;
+  
+  &:first-child {
+    padding-left: 24px;
+  }
+  
+  &:last-child {
+    padding-right: 24px;
+  }
+}
+
+/* Дополнительные стили для улучшения внешнего вида */
+.action-icon {
+  width: 24px;
+  height: 24px;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.currency-badge {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 4px 8px;
+  background-color: #e9ecef;
+  border-radius: 12px;
+  font-size: 12px;
+  color: #495057;
+}
+.nav-buttons-wrapper{
+  margin: 30px 0px;
+}
+.loading-state{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.empty-state{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.error-message {
+  color: red;
+  font-size: 14px;
+  margin-top: 5px;
+}
+.custom-spinner {
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top-color: #3f51b5; 
+  animation: spin 1s linear infinite;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+}
+
+@keyframes spin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}

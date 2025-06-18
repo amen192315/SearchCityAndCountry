@@ -1,0 +1,87 @@
+<form class="form__search_countries" [formGroup]="searchForm">
+  <div class="wrapper__search_countries">
+    <input
+      type="text"
+      class="search_countries"
+      placeholder="Поиск стран..."
+      formControlName="searchInput"
+    />
+    <img src="/icons/search.svg" alt="Поиск" class="search-icon" />
+  </div>
+  <div *ngIf="searchForm.invalid" class="error-message">
+    Используйте только латиницу
+  </div>
+</form>
+
+<!-- кнопки -->
+<div class="nav-buttons-wrapper">
+  <app-nav-buttons></app-nav-buttons>
+</div>
+
+<!-- спиннер -->
+<div *ngIf="isLoading" class="loading-state">
+  <div class="custom-spinner" *ngIf="isLoading"></div>
+  <span>Загрузка данных...</span>
+</div>
+
+<!-- Рендер при отсутсвии стран -->
+<div *ngIf="!isLoading && dataSource.data.length === 0" class="empty-state">
+  <mat-icon>search_off</mat-icon>
+  <p>Страны не найдены</p>
+</div>
+
+<div class="table-container">
+  <table
+    *ngIf="!isLoading && dataSource.data.length > 0"
+    mat-table
+    [dataSource]="dataSource"
+    class="countries-table"
+  >
+    <ng-container matColumnDef="icon">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let element">
+        <button mat-icon-button (click)="goToCities(element.code)">
+          <img src="/icons/touch.svg" alt="Действие" class="action-icon" />
+        </button>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Наименование</th>
+      <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="wikiDataId">
+      <th mat-header-cell *matHeaderCellDef>ID страны</th>
+      <td mat-cell *matCellDef="let element">{{ element.wikiDataId }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="code">
+      <th mat-header-cell *matHeaderCellDef>Код страны</th>
+      <td mat-cell *matCellDef="let element">{{ element.code }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="currencyCodes">
+      <th mat-header-cell *matHeaderCellDef>Коды валют</th>
+      <td mat-cell *matCellDef="let element">
+        <span
+          *ngFor="let currency of element.currencyCodes"
+          class="currency-badge"
+        >
+          {{ currency }}
+        </span>
+      </td>
+    </ng-container>
+
+    <tr
+      mat-header-row
+      *matHeaderRowDef="displayedColumns"
+      class="mat-header-row"
+    ></tr>
+    <tr
+      mat-row
+      *matRowDef="let row; columns: displayedColumns"
+      class="mat-row"
+    ></tr>
+  </table>
+</div>

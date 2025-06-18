@@ -1,0 +1,38 @@
+<h2 class="popup__title" mat-dialog-title>{{ data.name }}</h2>
+
+<mat-dialog-content class="popup__content">
+  <div class="popup__grid">
+    <div class="popup__col popup__col--left">
+      <div class="popup__item">
+        <h3 class="popup__subtitle">Страна</h3>
+        <p class="popup__text">{{ data.country }}</p>
+      </div>
+      <div class="popup__item">
+        <h3 class="popup__subtitle">Население</h3>
+        <p class="popup__text">{{ data.population | customNumber }}</p>
+      </div>
+      <div class="popup__item">
+        <h3 class="popup__subtitle">Долгота</h3>
+        <p class="popup__text">{{ data.longitude | roundPipe }}</p>
+      </div>
+    </div>
+    <div class="popup__col popup__col--right">
+      <div class="popup__item">
+        <h3 class="popup__subtitle">Регион</h3>
+        <p class="popup__text">{{ data.region }}</p>
+      </div>
+      <div class="popup__item">
+        <h3 class="popup__subtitle">Региональный код</h3>
+        <p class="popup__text">{{ data.regionCode }}</p>
+      </div>
+      <div class="popup__item">
+        <h3 class="popup__subtitle">Широта</h3>
+        <p class="popup__text">{{ data.latitude | roundPipe }}</p>
+      </div>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions class="popup__actions">
+  <button class="popup__button" mat-button mat-dialog-close>Закрыть</button>
+</mat-dialog-actions>

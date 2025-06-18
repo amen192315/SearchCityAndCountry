@@ -1,0 +1,24 @@
+.wrapper__err{
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+.title__err{
+    color: #191C30E6;
+    font-weight: 800;
+    line-height: 28px;
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+.link__err {
+  color: #3e4361e6;
+  font-weight: 500;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.link__err:hover {
+  color: #2a2f4de6;
+}
