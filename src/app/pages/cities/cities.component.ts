@@ -6,23 +6,23 @@ import {
   OnDestroy,
   OnInit,
 } from '@angular/core';
-import { CitiesService } from '../../data/services/cities/cities.service';
-import {
-  CityApiResponse,
-  SearchCity,
-} from '../../data/interfaces/city/city.interface';
+import { CitiesService } from './services/city.service';
+
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { debounceTime, Subject, switchMap, takeUntil } from 'rxjs';
-import { DataCity } from '../../data/interfaces/city/dataCity.interface';
-import { NavButtonsComponent } from '../../common-ui/nav-buttons/nav-buttons.component';
+import { debounceTime, of, Subject, switchMap, takeUntil } from 'rxjs';
+
+import { NavButtonsComponent } from '../../core/components/nav-buttons/nav-buttons.component';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CustomNumber } from '../../helpers/pipes/custom-number.pipe';
+import { CustomNumber } from '../../core/pipes/custom-number.pipe';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { CityDetailsPopupComponent } from '../../common-ui/city-details-popup/city-details-popup.component';
+import { CityDetailsPopupComponent } from '../../core/components/city-details-popup/city-details-popup.component';
 import { ActivatedRoute } from '@angular/router';
+import { CityEditPopupComponent } from '../../core/components/city-edit-popup/city-edit-popup.component';
+import { CityData } from './models/cityData.interface';
+import { CityApiResponse, SearchCity } from './models/city.interface';
 
 @Component({
   selector: 'app-cities',
@@ -41,10 +41,6 @@ import { ActivatedRoute } from '@angular/router';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CitiesComponent implements OnInit, OnDestroy {
-  editItem(_t99: any) {
-    throw new Error('Method not implemented.');
-  }
-
   private readonly dataService = inject(CitiesService);
   private readonly fb = inject(FormBuilder);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -52,7 +48,7 @@ export class CitiesComponent implements OnInit, OnDestroy {
   private readonly dialog = inject(MatDialog);
   private readonly route = inject(ActivatedRoute);
 
-  //---material ui data----
+  //---material ui данные----
   readonly displayedColumns: string[] = [
     'country',
     'name',
@@ -60,7 +56,7 @@ export class CitiesComponent implements OnInit, OnDestroy {
     'population',
     'actions',
   ];
-  readonly dataSource = new MatTableDataSource<DataCity>([]);
+  readonly dataSource = new MatTableDataSource<CityData>([]);
   //------------------------
   isLoading = false;
   countryCode?: string;
@@ -69,7 +65,19 @@ export class CitiesComponent implements OnInit, OnDestroy {
     searchInput: ['', [Validators.pattern(/^[A-Za-z]*$/)]],
   });
 
+  // сохранение и получение данных из localStorage
+  private saveToLocalStorage(cities: CityData[]) {
+    localStorage.setItem('citiesData', JSON.stringify(cities));
+  }
+
+  private getFromLocalStorage(): CityData[] | null {
+    const data = localStorage.getItem('citiesData');
+    return data ? JSON.parse(data) : null;
+  }
+  //----------------------------------------------
+
   ngOnInit() {
+    this.loadLocalData();
     this.route.params
       .pipe(
         takeUntil(this.destroy$),
@@ -100,6 +108,19 @@ export class CitiesComponent implements OnInit, OnDestroy {
           if (this.searchForm.valid) {
             this.cdr.markForCheck();
           }
+          // При поиске используем данные из localStorage или API
+          const localData = this.getFromLocalStorage();
+          if (localData && !items.searchInput) {
+            return of({ data: localData });
+          }
+          //города определенной страны
+          if (this.countryCode) {
+            return this.dataService.searchCitiesAfterCode(
+              this.countryCode,
+              items.searchInput
+            );
+          }
+          //все остальные города
           return items.searchInput
             ? this.dataService.searchCity(items.searchInput)
             : this.dataService.getCities();
@@ -116,6 +137,17 @@ export class CitiesComponent implements OnInit, OnDestroy {
           this.finallyRender();
         },
       });
+  }
+  loadLocalData() {
+    this.isLoading = true;
+
+    // Проверяем localStorage
+    const localData = this.getFromLocalStorage();
+
+    if (localData) {
+      this.dataSource.data = localData;
+      this.finallyRender();
+    }
   }
 
   //Начальные данные
@@ -156,6 +188,19 @@ export class CitiesComponent implements OnInit, OnDestroy {
       });
   }
 
+  //Обновляем данные в таблице
+  private updateCity(wikiDataId: string, updatedData: Partial<CityData>) {
+    const updatedCities = this.dataSource.data.map((city) =>
+      city.wikiDataId === wikiDataId ? { ...city, ...updatedData } : city
+    );
+
+    this.dataSource.data = updatedCities;
+
+    this.saveToLocalStorage(updatedCities);
+
+    this.cdr.markForCheck();
+  }
+
   //попап, показывает данные о городе
   viewCity(wikiID: number) {
     this.dataService
@@ -172,6 +217,20 @@ export class CitiesComponent implements OnInit, OnDestroy {
           console.error('Ошибка:', err);
         },
       });
+  }
+
+  //попап, изменяет данные о городе
+  editItem(city: CityData) {
+    const dialogRef = this.dialog.open(CityEditPopupComponent, {
+      width: '600px',
+      data: city,
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.updateCity(city.wikiDataId, result);
+      }
+    });
   }
 
   private finallyRender(): void {

@@ -1,4 +1,4 @@
-export interface DataCity {
+export interface CityData {
   id: number;
   wikiDataId: string;
   type: string;

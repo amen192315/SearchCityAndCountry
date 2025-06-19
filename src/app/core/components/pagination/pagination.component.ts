@@ -8,7 +8,7 @@ import {
 import {
   DEFAULT_PAGINATION_CONFIG,
   PaginationConfig,
-} from '../../data/interfaces/pagination.interface';
+} from '../../models/pagination.interface';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
 @Component({

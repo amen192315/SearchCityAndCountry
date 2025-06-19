@@ -8,18 +8,15 @@ import {
 } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { debounceTime, Subject, switchMap, takeUntil } from 'rxjs';
-import { DataCountry } from '../../data/interfaces/country/dataCountry.interface';
-import {
-  CountryApiResponse,
-  SearchCountry,
-} from '../../data/interfaces/country/country.interface';
-import { CountriesService } from '../../data/services/countries/countries.service';
+import { CountryApiResponse, SearchCountry } from './models/country.interface';
+import { CountriesService } from './services/country.service';
 import { CommonModule } from '@angular/common';
-import { NavButtonsComponent } from '../../common-ui/nav-buttons/nav-buttons.component';
+import { NavButtonsComponent } from '../../core/components/nav-buttons/nav-buttons.component';
 import { MatIconModule } from '@angular/material/icon';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
+import { CoutryData } from './models/countryData.interface';
 
 @Component({
   selector: 'app-countries',
@@ -51,7 +48,7 @@ export class CountriesComponent implements OnInit, OnDestroy {
     'code',
     'currencyCodes',
   ];
-  readonly dataSource = new MatTableDataSource<DataCountry>([]);
+  readonly dataSource = new MatTableDataSource<CoutryData>([]);
   //--------------------------
   isLoading = false;
 

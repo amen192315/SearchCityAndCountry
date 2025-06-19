@@ -1,16 +1,16 @@
-import { Link } from '../link.interface';
-import { Metadata } from '../metadata.interface';
-import { DataCity } from './dataCity.interface';
+import { Link } from '../../../core/models/link.interface';
+import { Metadata } from '../../../core/models/metadata.interface';
+import { CityData } from './cityData.interface';
 
 //Главный Api ответ
 export interface CityApiResponse {
   links: Link[];
-  data: DataCity[];
+  data: CityData[];
   metadata: Metadata;
 }
 
 //Нахождение страны по вводу через input
 export interface SearchCity {
-  data: DataCity[];
+  data: CityData[];
   metadata: Metadata;
 }

@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { CitiesComponent } from './pages/cities/cities.component';
 import { CountriesComponent } from './pages/countries/countries.component';
-import { LayoutComponent } from './common-ui/layout/layout.component';
+import { LayoutComponent } from './core/components/layout/layout.component';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
 
 export const routes: Routes = [

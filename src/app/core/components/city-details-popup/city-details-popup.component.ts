@@ -9,9 +9,10 @@ import {
   MatDialogModule,
   MatDialogRef,
 } from '@angular/material/dialog';
-import { DataCity } from '../../data/interfaces/city/dataCity.interface';
-import { CustomNumber } from '../../helpers/pipes/custom-number.pipe';
-import { RoundPipe } from '../../helpers/pipes/round-number.pipe';
+
+import { CustomNumber } from '../../pipes/custom-number.pipe';
+import { RoundPipe } from '../../pipes/round-number.pipe';
+import { CityData } from '../../../pages/cities/models/cityData.interface';
 
 @Component({
   selector: 'app-city-details-popup',
@@ -21,7 +22,7 @@ import { RoundPipe } from '../../helpers/pipes/round-number.pipe';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CityDetailsPopupComponent {
-  readonly dialogRef = inject(MatDialogRef<DataCity>);
-  readonly data = inject<DataCity>(MAT_DIALOG_DATA);
+  readonly dialogRef = inject(MatDialogRef<CityData>);
+  readonly data = inject<CityData>(MAT_DIALOG_DATA);
   constructor() {}
 }

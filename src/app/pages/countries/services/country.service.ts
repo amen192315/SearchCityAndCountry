@@ -1,9 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import {
-  CountryApiResponse,
-  SearchCountry,
-} from '../../interfaces/country/country.interface';
+import { CountryApiResponse, SearchCountry } from '../models/country.interface';
 
 @Injectable({
   providedIn: 'root',

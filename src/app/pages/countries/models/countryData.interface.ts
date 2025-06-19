@@ -1,4 +1,4 @@
-export interface DataCountry {
+export interface CoutryData {
   code: string;
   currencyCodes: string[];
   name: string;
