@@ -1,32 +1,42 @@
 import {
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   inject,
   OnDestroy,
   OnInit,
+  signal,
 } from '@angular/core';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { debounceTime, Subject, switchMap, takeUntil } from 'rxjs';
-import { CountryApiResponse, SearchCountry } from './models/country.interface';
+import {
+  catchError,
+  debounceTime,
+  EMPTY,
+  filter,
+  finalize,
+  Subject,
+  switchMap,
+  takeUntil,
+  tap,
+} from 'rxjs';
 import { CountriesService } from './services/country.service';
 import { CommonModule } from '@angular/common';
-import { NavButtonsComponent } from '../../core/components/nav-buttons/nav-buttons.component';
+
 import { MatIconModule } from '@angular/material/icon';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
-import { CoutryData } from './models/countryData.interface';
+import { CountryData } from './models/countryData.interface';
+import { NavLinksComponent } from '../../core/components/nav-links/nav-buttons.component';
 
 @Component({
   selector: 'app-countries',
   imports: [
     MatTableModule,
     CommonModule,
-    NavButtonsComponent,
     MatIconModule,
     ReactiveFormsModule,
     MatProgressSpinnerModule,
+    NavLinksComponent,
   ],
   standalone: true,
   templateUrl: './countries.component.html',
@@ -35,8 +45,7 @@ import { CoutryData } from './models/countryData.interface';
 })
 export class CountriesComponent implements OnInit, OnDestroy {
   private readonly dataService = inject(CountriesService);
-  private readonly cdr = inject(ChangeDetectorRef);
-  private readonly destroy$ = new Subject();
+  private readonly takeUntilDestroyed = new Subject();
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
 
@@ -48,9 +57,10 @@ export class CountriesComponent implements OnInit, OnDestroy {
     'code',
     'currencyCodes',
   ];
-  readonly dataSource = new MatTableDataSource<CoutryData>([]);
-  //--------------------------
-  isLoading = false;
+
+  readonly dataSource = signal<CountryData[]>([]);
+
+  isLoading = signal(false);
 
   readonly searchForm = this.fb.group({
     searchInput: ['', [Validators.pattern(/^[A-Za-z]*$/)]],
@@ -61,65 +71,60 @@ export class CountriesComponent implements OnInit, OnDestroy {
     this.searchForm.valueChanges
       .pipe(
         debounceTime(400),
+        filter(() => this.searchForm.valid),
+        tap(() => this.isLoading.set(true)),
         switchMap((items) => {
-          this.isLoading = true;
-          if (this.searchForm.valid) {
-            this.cdr.markForCheck();
-          }
           return items.searchInput
             ? this.dataService.searchCountry(items.searchInput)
             : this.dataService.getCountries();
         }),
-        takeUntil(this.destroy$)
+        catchError((err) => {
+          console.error('Error occurred:', err);
+          return EMPTY;
+        }),
+        tap((res) => {
+          this.isLoading.set(false);
+          this.dataSource.set(res.data);
+        }),
+        takeUntil(this.takeUntilDestroyed)
       )
-      .subscribe({
-        next: (res) => {
-          this.dataSource.data = res.data;
-          this.finallyRender();
-        },
-        error: (err) => {
-          console.warn(err);
-          this.finallyRender();
-        },
-      });
+      .subscribe();
   }
 
   //Начальные данные
   initialData(): void {
-    this.isLoading = true;
+    this.isLoading.set(true);
 
     this.dataService
       .getCountries()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response: CountryApiResponse) => {
-          this.dataSource.data = response.data;
-          this.finallyRender();
-        },
-        error: (err) => {
-          console.warn(err);
-          this.finallyRender();
-        },
-      });
+      .pipe(
+        tap((res) => this.dataSource.set(res.data)),
+        catchError((err) => {
+          console.error('Error occurred:', err);
+          return EMPTY;
+        }),
+        takeUntil(this.takeUntilDestroyed),
+        finalize(() => this.isLoading.set(false))
+      )
+      .subscribe();
   }
 
   //Данные полученные с input
   searchCities(item: string): void {
-    this.isLoading = true;
+    this.isLoading.set(true);
 
     this.dataService
       .searchCountry(item)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (res: SearchCountry) => {
-          this.dataSource.data = res.data;
-          this.finallyRender();
-        },
-        error: (err) => {
-          console.warn(err);
-          this.finallyRender();
-        },
-      });
+      .pipe(
+        tap((res) => this.dataSource.set(res.data)),
+        catchError((err) => {
+          console.error('Error occurred:', err);
+          return EMPTY;
+        }),
+        takeUntil(this.takeUntilDestroyed),
+        finalize(() => this.isLoading.set(false))
+      )
+      .subscribe();
   }
 
   //прокидываем данные в урл
@@ -127,13 +132,8 @@ export class CountriesComponent implements OnInit, OnDestroy {
     this.router.navigate(['/cities', countryCode]);
   }
 
-  private finallyRender(): void {
-    this.cdr.markForCheck();
-    this.isLoading = false;
-  }
-
   ngOnDestroy(): void {
-    this.destroy$.next(true);
-    this.destroy$.complete();
+    this.takeUntilDestroyed.next(true);
+    this.takeUntilDestroyed.complete();
   }
 }

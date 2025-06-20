@@ -8,35 +8,35 @@
     />
     <img src="/icons/search.svg" alt="Поиск" class="search-icon" />
   </div>
-  <div *ngIf="searchForm.invalid" class="error-message">
-    Используйте только латиницу
-  </div>
+  @if (searchForm.invalid) {
+  <div class="error-message">Используйте только латиницу</div>
+  }
 </form>
 
 <!-- кнопки -->
 <div class="nav-buttons-wrapper">
-  <app-nav-buttons></app-nav-buttons>
+  <app-nav-links></app-nav-links>
 </div>
 
-<!-- спиннер -->
-<div *ngIf="isLoading" class="loading-state">
-  <div class="custom-spinner" *ngIf="isLoading"></div>
+<!--спиннер -->
+@if (isLoading()) {
+<div class="loading-state">
+  <div class="custom-spinner"></div>
   <span>Загрузка данных...</span>
 </div>
+}
 
-<!-- Рендер при отсутсвии стран -->
-<div *ngIf="!isLoading && dataSource.data.length === 0" class="empty-state">
+<!-- Рендер при отсутсвии города -->
+@if(!isLoading() && dataSource().length === 0){
+<div class="empty-state">
   <mat-icon>search_off</mat-icon>
-  <p>Страны не найдены</p>
+  <p>Город не найден</p>
 </div>
+}
 
 <div class="table-container">
-  <table
-    *ngIf="!isLoading && dataSource.data.length > 0"
-    mat-table
-    [dataSource]="dataSource"
-    class="countries-table"
-  >
+  @if (!isLoading() && dataSource().length > 0) {
+  <table mat-table [dataSource]="dataSource()" class="countries-table">
     <ng-container matColumnDef="country">
       <th mat-header-cell *matHeaderCellDef>Страна</th>
       <td mat-cell *matCellDef="let element">{{ element.country }}</td>
@@ -87,4 +87,5 @@
       class="mat-row"
     ></tr>
   </table>
+  }
 </div>

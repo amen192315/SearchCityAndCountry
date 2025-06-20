@@ -5,13 +5,23 @@ import {
   inject,
   OnDestroy,
   OnInit,
+  signal,
 } from '@angular/core';
 import { CitiesService } from './services/city.service';
 
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { debounceTime, of, Subject, switchMap, takeUntil } from 'rxjs';
+import {
+  debounceTime,
+  filter,
+  finalize,
+  of,
+  Subject,
+  switchMap,
+  takeUntil,
+  tap,
+} from 'rxjs';
 
-import { NavButtonsComponent } from '../../core/components/nav-buttons/nav-buttons.component';
+import { NavLinksComponent } from '../../core/components/nav-links/nav-buttons.component';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CustomNumber } from '../../core/pipes/custom-number.pipe';
@@ -28,13 +38,13 @@ import { CityApiResponse, SearchCity } from './models/city.interface';
   selector: 'app-cities',
   imports: [
     MatTableModule,
-    NavButtonsComponent,
     CommonModule,
     CustomNumber,
     MatProgressSpinnerModule,
     ReactiveFormsModule,
     MatIconModule,
     MatDialogModule,
+    NavLinksComponent,
   ],
   templateUrl: './cities.component.html',
   styleUrl: './cities.component.scss',
@@ -44,7 +54,7 @@ export class CitiesComponent implements OnInit, OnDestroy {
   private readonly dataService = inject(CitiesService);
   private readonly fb = inject(FormBuilder);
   private readonly cdr = inject(ChangeDetectorRef);
-  private readonly destroy$ = new Subject();
+  private readonly takeUntilDestroyed = new Subject();
   private readonly dialog = inject(MatDialog);
   private readonly route = inject(ActivatedRoute);
 
@@ -56,63 +66,39 @@ export class CitiesComponent implements OnInit, OnDestroy {
     'population',
     'actions',
   ];
-  readonly dataSource = new MatTableDataSource<CityData>([]);
+  readonly dataSource = signal<CityData[]>([]);
   //------------------------
-  isLoading = false;
+  isLoading = signal(false);
   countryCode?: string;
 
   readonly searchForm = this.fb.group({
     searchInput: ['', [Validators.pattern(/^[A-Za-z]*$/)]],
   });
 
-  // сохранение и получение данных из localStorage
-  private saveToLocalStorage(cities: CityData[]) {
-    localStorage.setItem('citiesData', JSON.stringify(cities));
-  }
-
-  private getFromLocalStorage(): CityData[] | null {
-    const data = localStorage.getItem('citiesData');
-    return data ? JSON.parse(data) : null;
-  }
-  //----------------------------------------------
-
   ngOnInit() {
-    this.loadLocalData();
     this.route.params
       .pipe(
-        takeUntil(this.destroy$),
+        takeUntil(this.takeUntilDestroyed),
+        tap(() => this.isLoading.set(true)),
         switchMap((params) => {
-          this.isLoading = true;
           this.countryCode = params['countryCode'];
           return this.countryCode
             ? this.dataService.getCitiesByCode(this.countryCode)
             : this.dataService.getCities();
+        }),
+        tap((res) => {
+          this.dataSource.set(res.data);
+          this.isLoading.set(false);
         })
       )
-      .subscribe({
-        next: (res) => {
-          this.dataSource.data = res.data;
-          this.finallyRender();
-        },
-        error: (err) => {
-          console.warn(err);
-          this.finallyRender();
-        },
-      });
+      .subscribe();
 
     this.searchForm.valueChanges
       .pipe(
         debounceTime(400),
+        filter(() => this.searchForm.valid),
+        tap(() => this.isLoading.set(true)),
         switchMap((items) => {
-          this.isLoading = true;
-          if (this.searchForm.valid) {
-            this.cdr.markForCheck();
-          }
-          // При поиске используем данные из localStorage или API
-          const localData = this.getFromLocalStorage();
-          if (localData && !items.searchInput) {
-            return of({ data: localData });
-          }
           //города определенной страны
           if (this.countryCode) {
             return this.dataService.searchCitiesAfterCode(
@@ -125,87 +111,29 @@ export class CitiesComponent implements OnInit, OnDestroy {
             ? this.dataService.searchCity(items.searchInput)
             : this.dataService.getCities();
         }),
-        takeUntil(this.destroy$)
+        tap((res) => {
+          this.dataSource.set(res.data);
+          this.isLoading.set(false);
+        }),
+        takeUntil(this.takeUntilDestroyed),
+        finalize(() => this.isLoading.set(false))
       )
-      .subscribe({
-        next: (res) => {
-          this.dataSource.data = res.data;
-          this.finallyRender();
-        },
-        error: (err) => {
-          console.warn(err);
-          this.finallyRender();
-        },
-      });
-  }
-  loadLocalData() {
-    this.isLoading = true;
-
-    // Проверяем localStorage
-    const localData = this.getFromLocalStorage();
-
-    if (localData) {
-      this.dataSource.data = localData;
-      this.finallyRender();
-    }
-  }
-
-  //Начальные данные
-  initialData(): void {
-    this.isLoading = true;
-
-    this.dataService
-      .getCities()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response: CityApiResponse) => {
-          this.dataSource.data = response.data;
-          this.finallyRender();
-        },
-        error: (err) => {
-          console.warn(err);
-          this.finallyRender();
-        },
-      });
-  }
-
-  //Данные полученные с input
-  searchCities(item: string): void {
-    this.isLoading = true;
-
-    this.dataService
-      .searchCity(item)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (res: SearchCity) => {
-          this.dataSource.data = res.data;
-          this.finallyRender();
-        },
-        error: (err) => {
-          console.warn(err);
-          this.finallyRender();
-        },
-      });
+      .subscribe();
   }
 
   //Обновляем данные в таблице
   private updateCity(wikiDataId: string, updatedData: Partial<CityData>) {
-    const updatedCities = this.dataSource.data.map((city) =>
+    const updatedCities = this.dataSource().map((city) =>
       city.wikiDataId === wikiDataId ? { ...city, ...updatedData } : city
     );
-
-    this.dataSource.data = updatedCities;
-
-    this.saveToLocalStorage(updatedCities);
-
-    this.cdr.markForCheck();
+    this.dataSource.set(updatedCities);
   }
 
   //попап, показывает данные о городе
   viewCity(wikiID: number) {
     this.dataService
       .cityDetailsPopup(wikiID)
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntil(this.takeUntilDestroyed))
       .subscribe({
         next: (res) => {
           this.dialog?.open(CityDetailsPopupComponent, {
@@ -233,13 +161,8 @@ export class CitiesComponent implements OnInit, OnDestroy {
     });
   }
 
-  private finallyRender(): void {
-    this.cdr.markForCheck();
-    this.isLoading = false;
-  }
-
   ngOnDestroy(): void {
-    this.destroy$.next(true);
-    this.destroy$.complete();
+    this.takeUntilDestroyed.next(true);
+    this.takeUntilDestroyed.complete();
   }
 }
