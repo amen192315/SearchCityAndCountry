@@ -11,7 +11,9 @@ import { CitiesService } from './services/city.service';
 
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import {
+  catchError,
   debounceTime,
+  EMPTY,
   filter,
   finalize,
   of,
@@ -29,7 +31,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { CityDetailsPopupComponent } from '../../core/components/city-details-popup/city-details-popup.component';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CityEditPopupComponent } from '../../core/components/city-edit-popup/city-edit-popup.component';
 import { CityData } from './models/cityData.interface';
 import { CityApiResponse, SearchCity } from './models/city.interface';
@@ -57,6 +59,7 @@ export class CitiesComponent implements OnInit, OnDestroy {
   private readonly takeUntilDestroyed = new Subject();
   private readonly dialog = inject(MatDialog);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   //---material ui данные----
   readonly displayedColumns: string[] = [
@@ -86,12 +89,15 @@ export class CitiesComponent implements OnInit, OnDestroy {
             ? this.dataService.getCitiesByCode(this.countryCode)
             : this.dataService.getCities();
         }),
-        tap((res) => {
-          this.dataSource.set(res.data);
+        tap(() => {
           this.isLoading.set(false);
+        }),
+        catchError((err) => {
+          console.error('Error occurred:', err);
+          return EMPTY;
         })
       )
-      .subscribe();
+      .subscribe({ next: (res) => this.dataSource.set(res.data) });
 
     this.searchForm.valueChanges
       .pipe(
@@ -108,17 +114,32 @@ export class CitiesComponent implements OnInit, OnDestroy {
           }
           //все остальные города
           return items.searchInput
-            ? this.dataService.searchCity(items.searchInput)
+            ? this.dataService.getCities(
+                undefined,
+                undefined,
+                items.searchInput
+              )
             : this.dataService.getCities();
         }),
-        tap((res) => {
-          this.dataSource.set(res.data);
+        tap(() => {
           this.isLoading.set(false);
+        }),
+        catchError((err) => {
+          console.error('Error occurred:', err);
+          return EMPTY;
         }),
         takeUntil(this.takeUntilDestroyed),
         finalize(() => this.isLoading.set(false))
       )
-      .subscribe();
+      .subscribe({ next: (res) => this.dataSource.set(res.data) });
+  }
+  //геттер?
+  hasRouteData() {
+    return this.countryCode ? true : false;
+  }
+
+  closeFilter() {
+    this.router.navigate(['/cities']);
   }
 
   //Обновляем данные в таблице
@@ -159,6 +180,10 @@ export class CitiesComponent implements OnInit, OnDestroy {
         this.updateCity(city.wikiDataId, result);
       }
     });
+  }
+
+  clearFilter() {
+    this.router.navigate(['/cities']);
   }
 
   ngOnDestroy(): void {

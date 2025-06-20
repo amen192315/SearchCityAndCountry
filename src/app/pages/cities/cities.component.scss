@@ -1,4 +1,8 @@
 .form__search {
+  .wrapper__search_container{
+    display: flex;
+    justify-content: space-between;
+  }
   .wrapper__search {
     position: relative;
     width: 270px;
@@ -129,7 +133,14 @@
   animation: spin 1s linear infinite;
   transform: translate(-50%, -50%);
   z-index: 1000;
-}
+
+
+.filter-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}}
 
 @keyframes spin {
   to { transform: translate(-50%, -50%) rotate(360deg); }

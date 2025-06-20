@@ -1,5 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
+//пайп для кол-во населения
 @Pipe({ name: 'customNumber' })
 export class CustomNumber implements PipeTransform {
   transform(value: number): string {

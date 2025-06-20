@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { CountryApiResponse, SearchCountry } from '../models/country.interface';
 
@@ -12,19 +12,21 @@ export class CountriesService {
 
   constructor() {}
 
-  getCountries(offset: number = 0, limit: number = 5) {
-    // похожи
-    return this.http.get<CountryApiResponse>(
-      `${this.endpoint}?offset=${offset}&limit=${limit}`
-    );
-  }
+  getCountries(offset?: number, limit?: number, namePrefix?: string | null) {
+    let params = new HttpParams();
 
-  getTotalCount() {
-    return this.http.get<CountryApiResponse>(`${this.endpoint}?limit=1`);
-  }
+    if (offset !== undefined) {
+      params = params.set('offset', offset.toString());
+    }
 
-  searchCountry(value: string | null | undefined) {
-    // похожи
-    return this.http.get<SearchCountry>(`${this.endpoint}?namePrefix=${value}`);
+    if (limit !== undefined) {
+      params = params.set('limit', limit.toString());
+    }
+
+    if (namePrefix !== undefined && namePrefix !== null) {
+      params = params.set('namePrefix', namePrefix);
+    }
+
+    return this.http.get<CountryApiResponse>(this.endpoint, { params });
   }
 }

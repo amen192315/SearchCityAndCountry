@@ -1,5 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
+//пайп для долготы и широты
 @Pipe({
   name: 'roundPipe',
 })

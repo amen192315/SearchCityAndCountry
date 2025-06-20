@@ -1,12 +1,21 @@
 <form class="form__search" [formGroup]="searchForm">
-  <div class="wrapper__search">
-    <input
-      type="text"
-      class="search"
-      placeholder="Поиск города..."
-      formControlName="searchInput"
-    />
-    <img src="/icons/search.svg" alt="Поиск" class="search-icon" />
+  <div class="wrapper__search_container">
+    <div class="wrapper__search">
+      <input
+        type="text"
+        class="search"
+        placeholder="Поиск города..."
+        formControlName="searchInput"
+      />
+      <img src="/icons/search.svg" alt="Поиск" class="search-icon" />
+    </div>
+
+    @if (hasRouteData()) {
+    <button mat-raised-button class="filter-button" (click)="closeFilter()">
+      <mat-icon class="close-icon">close</mat-icon>
+      Фильтр
+    </button>
+    }
   </div>
   @if (searchForm.invalid) {
   <div class="error-message">Используйте только латиницу</div>

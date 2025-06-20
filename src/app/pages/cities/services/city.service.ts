@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable, of } from 'rxjs';
 import { CityApiResponse, SearchCity } from '../models/city.interface';
@@ -9,40 +9,40 @@ import { CityData } from '../models/cityData.interface';
 })
 export class CitiesService {
   readonly http = inject(HttpClient);
-  readonly baseApiUrl =
+  readonly endpoint =
     'http://geodb-free-service.wirefreethought.com/v1/geo/cities';
 
   constructor() {}
   //получение всех городов
-  getCities(
-    offset: number = 0,
-    limit: number = 5
-  ): Observable<CityApiResponse> {
-    return this.http.get<CityApiResponse>(
-      `${this.baseApiUrl}?offset=${offset}&limit=${limit}`
-    );
-  }
+  getCities(offset?: number, limit?: number, namePrefix?: string | null) {
+    let params = new HttpParams();
 
-  getTotalCount(): Observable<CityApiResponse> {
-    return this.http.get<CityApiResponse>(`${this.baseApiUrl}?limit=1`);
-  }
+    if (offset !== undefined) {
+      params = params.set('offset', offset.toString());
+    }
 
-  //поиск городов
-  searchCity(value: string | null | undefined): Observable<SearchCity> {
-    return this.http.get<SearchCity>(`${this.baseApiUrl}?namePrefix=${value}`);
+    if (limit !== undefined) {
+      params = params.set('limit', limit.toString());
+    }
+
+    if (namePrefix !== undefined && namePrefix !== null) {
+      params = params.set('namePrefix', namePrefix);
+    }
+
+    return this.http.get<CityApiResponse>(this.endpoint, { params });
   }
 
   //данные о городе в попап
   cityDetailsPopup(wikiID: number) {
     return this.http
-      .get<{ data: CityData }>(`${this.baseApiUrl}/${wikiID}`)
+      .get<{ data: CityData }>(`${this.endpoint}/${wikiID}`)
       .pipe(map((resp) => resp.data));
   }
 
   //получение списка городов определенной страны (фильтр)
   getCitiesByCode(countryCode: string): Observable<CityApiResponse> {
     return this.http.get<CityApiResponse>(
-      `${this.baseApiUrl}?countryIds=${countryCode}`
+      `${this.endpoint}?countryIds=${countryCode}`
     );
   }
 
@@ -52,7 +52,7 @@ export class CitiesService {
     value: string | null | undefined
   ): Observable<CityApiResponse> {
     return this.http.get<CityApiResponse>(
-      `${this.baseApiUrl}?countryIds=${countryCode}&namePrefix=${value}`
+      `${this.endpoint}?countryIds=${countryCode}&namePrefix=${value}`
     );
   }
 

@@ -5,8 +5,9 @@ import {
   OnDestroy,
   OnInit,
   signal,
+  ViewChild,
 } from '@angular/core';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatTableModule } from '@angular/material/table';
 import {
   catchError,
   debounceTime,
@@ -27,6 +28,12 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
 import { CountryData } from './models/countryData.interface';
 import { NavLinksComponent } from '../../core/components/nav-links/nav-buttons.component';
+import {
+  MatPaginator,
+  MatPaginatorModule,
+  PageEvent,
+} from '@angular/material/paginator';
+import { CountryApiResponse } from './models/country.interface';
 
 @Component({
   selector: 'app-countries',
@@ -37,6 +44,7 @@ import { NavLinksComponent } from '../../core/components/nav-links/nav-buttons.c
     ReactiveFormsModule,
     MatProgressSpinnerModule,
     NavLinksComponent,
+    MatPaginatorModule,
   ],
   standalone: true,
   templateUrl: './countries.component.html',
@@ -44,6 +52,7 @@ import { NavLinksComponent } from '../../core/components/nav-links/nav-buttons.c
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CountriesComponent implements OnInit, OnDestroy {
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
   private readonly dataService = inject(CountriesService);
   private readonly takeUntilDestroyed = new Subject();
   private readonly fb = inject(FormBuilder);
@@ -60,71 +69,88 @@ export class CountriesComponent implements OnInit, OnDestroy {
 
   readonly dataSource = signal<CountryData[]>([]);
 
-  isLoading = signal(false);
+  readonly pageSize = signal(5);
+  readonly offset = signal(0);
+  readonly totalCount = signal(0);
+  readonly isLoading = signal(false);
 
   readonly searchForm = this.fb.group({
     searchInput: ['', [Validators.pattern(/^[A-Za-z]*$/)]],
   });
+
   ngOnInit() {
-    this.initialData();
+    this.initialData(0, this.pageSize());
 
     this.searchForm.valueChanges
       .pipe(
         debounceTime(400),
         filter(() => this.searchForm.valid),
-        tap(() => this.isLoading.set(true)),
+        tap(() => {
+          this.isLoading.set(true);
+          if (this.paginator) {
+            this.paginator.pageIndex = 0;
+          }
+        }),
         switchMap((items) => {
           return items.searchInput
-            ? this.dataService.searchCountry(items.searchInput)
-            : this.dataService.getCountries();
+            ? this.dataService.getCountries(
+                0,
+                this.pageSize(),
+                items.searchInput
+              )
+            : this.dataService.getCountries(0, this.pageSize());
         }),
         catchError((err) => {
-          console.error('Error occurred:', err);
+          console.error('Произошла ошибка:', err);
+          this.dataSource.set([]);
           return EMPTY;
         }),
-        tap((res) => {
-          this.isLoading.set(false);
-          this.dataSource.set(res.data);
-        }),
+        tap(() => this.isLoading.set(false)),
         takeUntil(this.takeUntilDestroyed)
       )
-      .subscribe();
+      .subscribe({
+        next: (res: CountryApiResponse) => {
+          this.dataSource.set(res.data);
+        },
+      });
   }
 
   //Начальные данные
-  initialData(): void {
+  initialData(offset: number, limit: number, namePrefix?: string): void {
     this.isLoading.set(true);
 
     this.dataService
-      .getCountries()
+      .getCountries(offset, limit, namePrefix)
       .pipe(
-        tap((res) => this.dataSource.set(res.data)),
         catchError((err) => {
-          console.error('Error occurred:', err);
+          console.error('Произошла ошибка:', err);
+          this.dataSource.set([]);
           return EMPTY;
         }),
         takeUntil(this.takeUntilDestroyed),
         finalize(() => this.isLoading.set(false))
       )
-      .subscribe();
+      .subscribe({
+        next: (res: CountryApiResponse) => {
+          this.dataSource.set(res.data);
+          this.totalCount.set(res.metadata.totalCount);
+        },
+      });
+  }
+  get pageIndex() {
+    return Math.floor(this.offset() / this.pageSize());
   }
 
-  //Данные полученные с input
-  searchCities(item: string): void {
-    this.isLoading.set(true);
+  //пагинатор
+  onPageChange(event: PageEvent) {
+    const newPageIndex = event.pageIndex;
+    const newPageSize = event.pageSize;
 
-    this.dataService
-      .searchCountry(item)
-      .pipe(
-        tap((res) => this.dataSource.set(res.data)),
-        catchError((err) => {
-          console.error('Error occurred:', err);
-          return EMPTY;
-        }),
-        takeUntil(this.takeUntilDestroyed),
-        finalize(() => this.isLoading.set(false))
-      )
-      .subscribe();
+    const newOffset = newPageIndex * newPageSize;
+
+    this.pageSize.set(newPageSize);
+    this.offset.set(newOffset);
+    this.initialData(newOffset, newPageSize);
   }
 
   //прокидываем данные в урл
