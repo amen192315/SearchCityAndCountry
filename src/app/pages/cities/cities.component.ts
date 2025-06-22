@@ -80,7 +80,8 @@ export class CitiesComponent implements OnInit {
 
   readonly isLoading = signal(false);
 
-  countryCode?: string;
+  public firstCityName!: string;
+  public countryCode?: string;
 
   readonly searchForm = this.fb.group({
     searchInput: ['', [Validators.pattern(/^[A-Za-z]*$/)]],
@@ -96,8 +97,9 @@ export class CitiesComponent implements OnInit {
             ? this.dataService.getCitiesByCode(this.countryCode)
             : this.initialData(0, this.pageSize());
         }),
-        tap(() => {
+        tap((res) => {
           this.isLoading.set(false);
+          this.firstCityName = res.data[0].country;
         }),
         takeUntilDestroyed(this.destroyRef)
       )

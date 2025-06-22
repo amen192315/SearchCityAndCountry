@@ -139,12 +139,12 @@ mat-paginator{
   z-index: 1000;
 
 
+}
 .filter-button {
   display: flex;
   align-items: center;
   gap: 8px;
-  white-space: nowrap;
-}}
+}
 
 @keyframes spin {
   to { transform: translate(-50%, -50%) rotate(360deg); }

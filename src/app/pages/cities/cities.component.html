@@ -11,15 +11,12 @@
     </div>
 
     @if (hasRouteData) {
-    <button
-      *transloco="let t"
-      mat-raised-button
-      class="filter-button"
-      (click)="closeFilter()"
-    >
-      <mat-icon class="close-icon">close</mat-icon>
-      {{ t("city_comp.filter") }}
-    </button>
+    <div>
+      <button class="filter-button" mat-raised-button (click)="closeFilter()">
+        <mat-icon class="close-icon">close</mat-icon>
+        {{ firstCityName }}
+      </button>
+    </div>
     }
   </div>
   @if (searchForm.invalid) {
