@@ -3,7 +3,7 @@
     "countries": "Страны",
     "cities": "Города",
     "latin": "Используйте только латиницу",
-    "loading_data": "Загрузка данны...",
+    "loading_data": "Загрузка данных...",
     "city_comp":{
         "filter": "Фильтр",
         "search_city": "Поиск городов...",
@@ -11,7 +11,18 @@
         "country": "Страна",
         "name": "Наименование",
         "region": "Регион",
-        "population": "Население"
+        "population": "Население",
+        "latitude": "Широта",
+        "longitude": "Долгота",
+        "regional_code": "Региональный код",
+        "popup_edit": {
+            "correct_city_name": "Введите корректное название города",
+            "correct_country_name": "Введите корректное название страны",
+            "correct_region_name": "Введите корректное название региона",
+            "correct_population": "Введите корректное население",
+            "correct_latitude": "Введите корректную широту",
+            "correct_longitude": "Введите корректную долготу"
+        }
     },
     "country_comp":{
         "country_not_found": "Страна не найдена",

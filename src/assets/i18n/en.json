@@ -11,7 +11,18 @@
         "country": "Country",
         "name": "Name",
         "region": "Region",
-        "population": "Population"
+        "population": "Population",
+        "latitude": "latitude",
+        "longitude": "longitude",
+        "regional_code": "Regional code",
+        "popup_edit": {
+            "correct_city_name": "Please enter a valid city name",
+            "correct_country_name": "Please enter a valid country name",
+            "correct_region_name": "Please enter a valid region name",
+            "correct_population": "Enter the correct population",
+            "correct_latitude": "Please enter a valid latitude",
+            "correct_longitude": "Please enter a valid longitude"
+        }
     },
     "country_comp":{
         "search_country": "Search countries...",

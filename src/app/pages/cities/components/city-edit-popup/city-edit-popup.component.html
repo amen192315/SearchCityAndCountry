@@ -1,38 +1,81 @@
 <mat-dialog-content>
   <h2 class="popup__title">{{ data.city }}</h2>
-  <form [formGroup]="editForm" class="form-container">
+  <form *transloco="let t" [formGroup]="editForm" class="form-container">
     <div class="popup__grid">
       <div class="popup__col">
-        <mat-form-field appearance="outline">
-          <mat-label>Название</mat-label>
-          <input matInput formControlName="name" required />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Страна</mat-label>
-          <input matInput formControlName="country" required />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Регион</mat-label>
-          <input matInput formControlName="region" required />
-        </mat-form-field>
+        <div>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ t("city_comp.name") }}</mat-label>
+            <input matInput formControlName="name" required />
+          </mat-form-field>
+          @if (isInvalid('name')) {
+          <p class="error-message">
+            {{ t("city_comp.popup_edit.correct_city_name") }}
+          </p>
+          }
+        </div>
+        <div>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ t("city_comp.country") }}</mat-label>
+            <input matInput formControlName="country" required />
+          </mat-form-field>
+          @if (isInvalid('country')) {
+          <p class="error-message">
+            {{ t("city_comp.popup_edit.correct_country_name") }}
+          </p>
+          }
+        </div>
+        <div>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ t("city_comp.region") }}</mat-label>
+            <input matInput formControlName="region" required />
+          </mat-form-field>
+          @if (isInvalid('region')) {
+          <p class="error-message">
+            {{ t("city_comp.popup_edit.correct_region_name") }}
+          </p>
+          }
+        </div>
       </div>
       <div class="popup__col">
-        <mat-form-field appearance="outline">
-          <mat-label>Население</mat-label>
-          <input matInput type="number" formControlName="population" required />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Широта</mat-label>
-          <input matInput type="number" formControlName="latitude" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Долгота</mat-label>
-          <input matInput type="number" formControlName="longitude" />
-        </mat-form-field>
+        <div>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ t("city_comp.population") }}</mat-label>
+            <input
+              matInput
+              type="number"
+              formControlName="population"
+              required
+            />
+          </mat-form-field>
+          @if (isInvalid('population')) {
+          <p class="error-message">
+            {{ t("city_comp.popup_edit.correct_population") }}
+          </p>
+          }
+        </div>
+        <div>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ t("city_comp.latitude") }}</mat-label>
+            <input matInput type="number" formControlName="latitude" />
+          </mat-form-field>
+          @if (isInvalid('latitude')) {
+          <p class="error-message">
+            {{ t("city_comp.popup_edit.correct_latitude") }}
+          </p>
+          }
+        </div>
+        <div>
+          <mat-form-field appearance="outline">
+            <mat-label>{{ t("city_comp.longitude") }}</mat-label>
+            <input matInput type="number" formControlName="longitude" />
+          </mat-form-field>
+          @if (isInvalid('longitude')) {
+          <p class="error-message">
+            {{ t("city_comp.popup_edit.correct_longitude") }}
+          </p>
+          }
+        </div>
       </div>
     </div>
   </form>
