@@ -1,6 +1,8 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
+  DestroyRef,
   inject,
   OnDestroy,
   OnInit,
@@ -21,7 +23,7 @@ import {
 } from 'rxjs';
 import { CountriesService } from './services/country.service';
 import { CommonModule } from '@angular/common';
-
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -51,12 +53,13 @@ import { CountryApiResponse } from './models/country.interface';
   styleUrl: './countries.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CountriesComponent implements OnInit, OnDestroy {
+export class CountriesComponent implements OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+
   private readonly dataService = inject(CountriesService);
-  private readonly takeUntilDestroyed = new Subject();
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   //---material ui данные----
   readonly displayedColumns: string[] = [
@@ -100,17 +103,15 @@ export class CountriesComponent implements OnInit, OnDestroy {
               )
             : this.dataService.getCountries(0, this.pageSize());
         }),
-        catchError((err) => {
-          console.error('Произошла ошибка:', err);
-          this.dataSource.set([]);
-          return EMPTY;
-        }),
         tap(() => this.isLoading.set(false)),
-        takeUntil(this.takeUntilDestroyed)
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
         next: (res: CountryApiResponse) => {
           this.dataSource.set(res.data);
+        },
+        error: (err) => {
+          console.error(err);
         },
       });
   }
@@ -122,18 +123,16 @@ export class CountriesComponent implements OnInit, OnDestroy {
     this.dataService
       .getCountries(offset, limit, namePrefix)
       .pipe(
-        catchError((err) => {
-          console.error('Произошла ошибка:', err);
-          this.dataSource.set([]);
-          return EMPTY;
-        }),
-        takeUntil(this.takeUntilDestroyed),
+        takeUntilDestroyed(this.destroyRef),
         finalize(() => this.isLoading.set(false))
       )
       .subscribe({
         next: (res: CountryApiResponse) => {
           this.dataSource.set(res.data);
           this.totalCount.set(res.metadata.totalCount);
+        },
+        error: (err) => {
+          console.error(err);
         },
       });
   }
@@ -150,16 +149,11 @@ export class CountriesComponent implements OnInit, OnDestroy {
 
     this.pageSize.set(newPageSize);
     this.offset.set(newOffset);
-    this.initialData(newOffset, newPageSize);
+    this.initialData(this.offset(), this.pageSize());
   }
 
   //прокидываем данные в урл
   goToCities(countryCode: string) {
     this.router.navigate(['/cities', countryCode]);
-  }
-
-  ngOnDestroy(): void {
-    this.takeUntilDestroyed.next(true);
-    this.takeUntilDestroyed.complete();
   }
 }
