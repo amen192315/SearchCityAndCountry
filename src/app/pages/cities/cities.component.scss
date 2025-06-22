@@ -47,12 +47,16 @@
 /* Стили строк */
 .mat-row {
   height: 85px;
+  background-color: white;
 }
 
 /* Стили заголовков */
 .mat-header-row {
   height: 56px;
-  background-color: #f8f9fa;
+  background-color: white;
+}
+mat-paginator{
+  background-color: white;
 }
 
 /* Стили ячеек */

@@ -1,28 +1,22 @@
 import {
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
+  DestroyRef,
   inject,
-  OnDestroy,
   OnInit,
   signal,
 } from '@angular/core';
 import { CitiesService } from './services/city.service';
-
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatTableModule } from '@angular/material/table';
 import {
-  catchError,
   debounceTime,
-  EMPTY,
   filter,
   finalize,
-  of,
-  Subject,
+  Observable,
   switchMap,
-  takeUntil,
   tap,
 } from 'rxjs';
-
 import { NavLinksComponent } from '../../core/components/nav-links/nav-buttons.component';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -34,7 +28,12 @@ import { CityDetailsPopupComponent } from '../../core/components/city-details-po
 import { ActivatedRoute, Router } from '@angular/router';
 import { CityEditPopupComponent } from '../../core/components/city-edit-popup/city-edit-popup.component';
 import { CityData } from './models/cityData.interface';
-import { CityApiResponse, SearchCity } from './models/city.interface';
+import {
+  PageEvent,
+  MatPaginator,
+  MatPaginatorModule,
+} from '@angular/material/paginator';
+import { CityApiResponse } from './models/city.interface';
 
 @Component({
   selector: 'app-cities',
@@ -47,16 +46,17 @@ import { CityApiResponse, SearchCity } from './models/city.interface';
     MatIconModule,
     MatDialogModule,
     NavLinksComponent,
+    MatPaginator,
+    MatPaginatorModule,
   ],
   templateUrl: './cities.component.html',
   styleUrl: './cities.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CitiesComponent implements OnInit, OnDestroy {
+export class CitiesComponent implements OnInit {
   private readonly dataService = inject(CitiesService);
   private readonly fb = inject(FormBuilder);
-  private readonly cdr = inject(ChangeDetectorRef);
-  private readonly takeUntilDestroyed = new Subject();
+  private readonly destroyRef = inject(DestroyRef);
   private readonly dialog = inject(MatDialog);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -71,7 +71,13 @@ export class CitiesComponent implements OnInit, OnDestroy {
   ];
   readonly dataSource = signal<CityData[]>([]);
   //------------------------
-  isLoading = signal(false);
+  //данные для пагинатора
+  readonly pageSize = signal(5);
+  readonly offset = signal(0);
+  readonly totalCount = signal(0);
+
+  readonly isLoading = signal(false);
+
   countryCode?: string;
 
   readonly searchForm = this.fb.group({
@@ -81,23 +87,24 @@ export class CitiesComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.route.params
       .pipe(
-        takeUntil(this.takeUntilDestroyed),
         tap(() => this.isLoading.set(true)),
         switchMap((params) => {
           this.countryCode = params['countryCode'];
           return this.countryCode
             ? this.dataService.getCitiesByCode(this.countryCode)
-            : this.dataService.getCities();
+            : this.initialData(0, this.pageSize());
         }),
         tap(() => {
           this.isLoading.set(false);
         }),
-        catchError((err) => {
-          console.error('Error occurred:', err);
-          return EMPTY;
-        })
+        takeUntilDestroyed(this.destroyRef)
       )
-      .subscribe({ next: (res) => this.dataSource.set(res.data) });
+      .subscribe({
+        next: (res) => this.dataSource.set(res.data),
+        error: (err) => {
+          console.error(err);
+        },
+      });
 
     this.searchForm.valueChanges
       .pipe(
@@ -124,18 +131,46 @@ export class CitiesComponent implements OnInit, OnDestroy {
         tap(() => {
           this.isLoading.set(false);
         }),
-        catchError((err) => {
-          console.error('Error occurred:', err);
-          return EMPTY;
-        }),
-        takeUntil(this.takeUntilDestroyed),
+        takeUntilDestroyed(this.destroyRef),
         finalize(() => this.isLoading.set(false))
       )
-      .subscribe({ next: (res) => this.dataSource.set(res.data) });
+      .subscribe({
+        next: (res) => this.dataSource.set(res.data),
+        error: (err) => {
+          console.error(err);
+        },
+      });
+  }
+  //Начальные данные
+  initialData(offset: number, limit: number): Observable<CityApiResponse> {
+    this.isLoading.set(true);
+
+    return this.dataService.getCities(offset, limit).pipe(
+      tap((res: CityApiResponse) => {
+        this.dataSource.set(res.data);
+        this.totalCount.set(res.metadata.totalCount);
+      }),
+      finalize(() => this.isLoading.set(false))
+    );
   }
   //геттер?
-  hasRouteData() {
+  get hasRouteData() {
     return this.countryCode ? true : false;
+  }
+
+  get pageIndex() {
+    return Math.floor(this.offset() / this.pageSize());
+  }
+  // пагинатор
+  onPageChange(event: PageEvent) {
+    const newPageIndex = event.pageIndex;
+    const newPageSize = event.pageSize;
+
+    const newOffset = newPageIndex * newPageSize;
+
+    this.pageSize.set(newPageSize);
+    this.offset.set(newOffset);
+    this.initialData(this.offset(), this.pageSize()).subscribe();
   }
 
   closeFilter() {
@@ -154,7 +189,7 @@ export class CitiesComponent implements OnInit, OnDestroy {
   viewCity(wikiID: number) {
     this.dataService
       .cityDetailsPopup(wikiID)
-      .pipe(takeUntil(this.takeUntilDestroyed))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (res) => {
           this.dialog?.open(CityDetailsPopupComponent, {
@@ -163,7 +198,7 @@ export class CitiesComponent implements OnInit, OnDestroy {
           });
         },
         error: (err) => {
-          console.error('Ошибка:', err);
+          console.error(err);
         },
       });
   }
@@ -184,10 +219,5 @@ export class CitiesComponent implements OnInit, OnDestroy {
 
   clearFilter() {
     this.router.navigate(['/cities']);
-  }
-
-  ngOnDestroy(): void {
-    this.takeUntilDestroyed.next(true);
-    this.takeUntilDestroyed.complete();
   }
 }
