@@ -24,6 +24,7 @@ import {
   PageEvent,
 } from '@angular/material/paginator';
 import { CountryApiResponse } from './models/country.interface';
+import { TranslocoDirective, TranslocoModule } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-countries',
@@ -35,6 +36,8 @@ import { CountryApiResponse } from './models/country.interface';
     MatProgressSpinnerModule,
     NavLinksComponent,
     MatPaginatorModule,
+    TranslocoDirective,
+    TranslocoModule,
   ],
   standalone: true,
   templateUrl: './countries.component.html',

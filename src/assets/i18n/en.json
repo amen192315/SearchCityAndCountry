@@ -1,0 +1,24 @@
+{
+    "geo_info": "Geoinformation",
+    "countries": "Countries",
+    "cities": "Cities",
+    "latin": "Use only Latin alphabet",
+    "loading_data": "Loading data...",
+    "city_comp":{
+        "filter": "Filter",
+        "search_city": "Search citites...",
+        "city_not_found": "City not found",
+        "country": "Country",
+        "name": "Name",
+        "region": "Region",
+        "population": "Population"
+    },
+    "country_comp":{
+        "search_country": "Search countries...",
+        "country_not_found": "Country not found",
+        "country_id": "Country ID",
+        "name": "Name",
+        "country_code": "Country code",
+        "currency_codes": "Currency codes"
+    }
+}

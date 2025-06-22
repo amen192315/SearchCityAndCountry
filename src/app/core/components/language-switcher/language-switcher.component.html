@@ -1,0 +1,14 @@
+<ng-container *transloco="let t">
+  <section class="language-section">
+    <mat-radio-group
+      [(ngModel)]="currentLang"
+      (change)="changeLanguage(currentLang)"
+    >
+      @for (lang of languages; track $index) {
+      <mat-radio-button class="language-option" [value]="lang">
+        {{ t(lang) }}
+      </mat-radio-button>
+      }
+    </mat-radio-group>
+  </section>
+</ng-container>

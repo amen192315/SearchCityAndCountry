@@ -1,0 +1,24 @@
+{
+    "geo_info": "Геоинформация",
+    "countries": "Страны",
+    "cities": "Города",
+    "latin": "Используйте только латиницу",
+    "loading_data": "Загрузка данны...",
+    "city_comp":{
+        "filter": "Фильтр",
+        "search_city": "Поиск городов...",
+        "city_not_found": "Город не найден",
+        "country": "Страна",
+        "name": "Наименование",
+        "region": "Регион",
+        "population": "Население"
+    },
+    "country_comp":{
+        "country_not_found": "Страна не найдена",
+        "search_country": "Поиск стран...",
+        "country_id": "ID страны",
+        "name": "Наименование",
+        "country_code": "Код страны",
+        "currency_codes": "Коды валют"
+    }
+}

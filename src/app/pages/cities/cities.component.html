@@ -1,24 +1,29 @@
-<form class="form__search" [formGroup]="searchForm">
+<form *transloco="let t" class="form__search" [formGroup]="searchForm">
   <div class="wrapper__search_container">
     <div class="wrapper__search">
       <input
         type="text"
         class="search"
-        placeholder="Поиск города..."
+        [placeholder]="t('city_comp.search_city')"
         formControlName="searchInput"
       />
       <img src="/icons/search.svg" alt="Поиск" class="search-icon" />
     </div>
 
     @if (hasRouteData) {
-    <button mat-raised-button class="filter-button" (click)="closeFilter()">
+    <button
+      *transloco="let t"
+      mat-raised-button
+      class="filter-button"
+      (click)="closeFilter()"
+    >
       <mat-icon class="close-icon">close</mat-icon>
-      Фильтр
+      {{ t("city_comp.filter") }}
     </button>
     }
   </div>
   @if (searchForm.invalid) {
-  <div class="error-message">Используйте только латиницу</div>
+  <div class="error-message">{{ t("latin") }}</div>
   }
 </form>
 
@@ -29,40 +34,45 @@
 
 <!--спиннер -->
 @if (isLoading()) {
-<div class="loading-state">
+<div *transloco="let t" class="loading-state">
   <div class="custom-spinner"></div>
-  <span>Загрузка данных...</span>
+  <span>{{ t("loading_data") }}</span>
 </div>
 }
 
 <!-- Рендер при отсутсвии города -->
 @if(!isLoading() && dataSource().length === 0){
-<div class="empty-state">
+<div *transloco="let t" class="empty-state">
   <mat-icon>search_off</mat-icon>
-  <p>Город не найден</p>
+  <p>{{ t("city_comp.city_not_found") }}</p>
 </div>
 }
 
 <div class="table-container">
   @if (!isLoading() && dataSource().length > 0) {
-  <table mat-table [dataSource]="dataSource()" class="countries-table">
+  <table
+    *transloco="let t"
+    mat-table
+    [dataSource]="dataSource()"
+    class="countries-table"
+  >
     <ng-container matColumnDef="country">
-      <th mat-header-cell *matHeaderCellDef>Страна</th>
+      <th mat-header-cell *matHeaderCellDef>{{ t("city_comp.country") }}</th>
       <td mat-cell *matCellDef="let element">{{ element.country }}</td>
     </ng-container>
 
     <ng-container matColumnDef="name">
-      <th mat-header-cell *matHeaderCellDef>Наименование</th>
+      <th mat-header-cell *matHeaderCellDef>{{ t("city_comp.name") }}</th>
       <td mat-cell *matCellDef="let element">{{ element.name }}</td>
     </ng-container>
 
     <ng-container matColumnDef="region">
-      <th mat-header-cell *matHeaderCellDef>Регион</th>
+      <th mat-header-cell *matHeaderCellDef>{{ t("city_comp.region") }}</th>
       <td mat-cell *matCellDef="let element">{{ element.region }}</td>
     </ng-container>
 
     <ng-container matColumnDef="population">
-      <th mat-header-cell *matHeaderCellDef>Население</th>
+      <th mat-header-cell *matHeaderCellDef>{{ t("city_comp.population") }}</th>
       <td mat-cell *matCellDef="let element">
         {{ element.population | customNumber }}
       </td>

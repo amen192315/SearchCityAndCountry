@@ -34,6 +34,7 @@ import {
   MatPaginatorModule,
 } from '@angular/material/paginator';
 import { CityApiResponse } from './models/city.interface';
+import { TranslocoDirective } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-cities',
@@ -48,6 +49,7 @@ import { CityApiResponse } from './models/city.interface';
     NavLinksComponent,
     MatPaginator,
     MatPaginatorModule,
+    TranslocoDirective,
   ],
   templateUrl: './cities.component.html',
   styleUrl: './cities.component.scss',

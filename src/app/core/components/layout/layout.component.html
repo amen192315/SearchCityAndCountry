@@ -1,13 +1,12 @@
 <header class="header">
   <div class="container">
-    <div class="header__inner">
+    <div *transloco="let t" class="header__inner">
       <div class="header__title">
-        <h1 class="header__heading">ГЕОИНФОРМАЦИЯ</h1>
+        <h1 class="header__heading">{{ t("geo_info") }}</h1>
       </div>
       <div class="header__lang-switcher">
         <div class="lang-switcher">
-          <button class="lang-switcher__btn">RU</button>
-          <button class="lang-switcher__btn">EN</button>
+          <app-language-switcher></app-language-switcher>
         </div>
       </div>
     </div>
