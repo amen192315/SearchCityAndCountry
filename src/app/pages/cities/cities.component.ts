@@ -24,9 +24,9 @@ import { CustomNumber } from '../../core/pipes/custom-number.pipe';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { CityDetailsPopupComponent } from '../../core/components/city-details-popup/city-details-popup.component';
+import { CityDetailsPopupComponent } from './components/city-details-popup/city-details-popup.component';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CityEditPopupComponent } from '../../core/components/city-edit-popup/city-edit-popup.component';
+import { CityEditPopupComponent } from './components/city-edit-popup/city-edit-popup.component';
 import { CityData } from './models/cityData.interface';
 import {
   PageEvent,

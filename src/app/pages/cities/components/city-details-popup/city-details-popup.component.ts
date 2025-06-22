@@ -10,9 +10,9 @@ import {
   MatDialogRef,
 } from '@angular/material/dialog';
 
-import { CustomNumber } from '../../pipes/custom-number.pipe';
-import { RoundPipe } from '../../pipes/round-number.pipe';
-import { CityData } from '../../../pages/cities/models/cityData.interface';
+import { CustomNumber } from '../../../../core/pipes/custom-number.pipe';
+import { RoundPipe } from '../../../../core/pipes/round-number.pipe';
+import { CityData } from '../../models/cityData.interface';
 
 @Component({
   selector: 'app-city-details-popup',

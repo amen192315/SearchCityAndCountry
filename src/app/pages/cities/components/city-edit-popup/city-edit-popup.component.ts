@@ -10,7 +10,7 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { CityData } from '../../../pages/cities/models/cityData.interface';
+import { CityData } from '../../models/cityData.interface';
 
 @Component({
   selector: 'app-city-edit-popup',
