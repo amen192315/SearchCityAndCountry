@@ -20,5 +20,9 @@
         "name": "Name",
         "country_code": "Country code",
         "currency_codes": "Currency codes"
+    },
+    "not_found": {
+        "not_exist": "Page does not exist",
+        "return":"Return to main page"
     }
 }
