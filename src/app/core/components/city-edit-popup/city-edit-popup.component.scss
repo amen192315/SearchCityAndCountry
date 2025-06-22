@@ -1,6 +1,8 @@
 .popup__title{
     font-weight: 700;
     color:#191C30E6 ;
+    padding-bottom: 20px;
+    font-size: 25px;
 }
 .popup__button{
     padding: 13px 23px;
@@ -16,6 +18,7 @@ h3{
 .popup__grid{
     display: grid;
     grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
 }
 .popup__col{
   display: flex;
