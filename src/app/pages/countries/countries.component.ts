@@ -131,6 +131,7 @@ export class CountriesComponent implements OnInit {
         },
       });
   }
+
   get pageIndex() {
     return Math.floor(this.offset() / this.pageSize());
   }

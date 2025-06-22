@@ -1,14 +1,13 @@
-$primaryColor: #191C30E6;
 .header {
   padding-top: 30px;
 
-  &__inner {
+  .header__inner {
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
-  &__heading{
-    color: $primaryColor;
+  .header__heading{
+    color: #191C30E6;
     font-weight: 800;
     line-height: 28px;
     font-size: 24px;
