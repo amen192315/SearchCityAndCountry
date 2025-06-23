@@ -168,11 +168,13 @@ export class CitiesComponent implements OnInit {
         finalize(() => this.isLoading.set(false))
       );
   }
-  //геттер?
+
+  //геттер или hasRouteData = computed(() => !!this.countryCode);
   get hasRouteData() {
     return this.countryCode ? true : false;
   }
 
+  //геттер или pageIndex = computed(() => Math.floor(this.offset() / this.pageSize()));
   get pageIndex() {
     return Math.floor(this.offset() / this.pageSize());
   }
