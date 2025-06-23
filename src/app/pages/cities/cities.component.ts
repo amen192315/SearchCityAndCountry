@@ -151,7 +151,7 @@ export class CitiesComponent implements OnInit {
         },
       });
   }
-  //Начальные данные
+  //главный метод (получение данных)
   initialData(): Observable<CityApiResponse> {
     const offset = this.offset();
     const limit = this.pageSize();
