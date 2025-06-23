@@ -31,31 +31,39 @@ export class CitiesService {
 
     return this.http.get<CityApiResponse>(this.endpoint, { params });
   }
+  //получение списка городов определенной страны (фильтр) и поиск
+  getAndSearchCitiesByCode(
+    offset?: number,
+    limit?: number,
+    countryIds?: string | null,
+    namePrefix?: string | null
+  ) {
+    let params = new HttpParams();
 
+    if (offset !== undefined) {
+      params = params.set('offset', offset.toString());
+    }
+
+    if (limit !== undefined) {
+      params = params.set('limit', limit.toString());
+    }
+
+    if (countryIds !== undefined && countryIds !== null) {
+      params = params.set('countryIds', countryIds);
+    }
+
+    if (namePrefix !== undefined && namePrefix !== null) {
+      params = params.set('namePrefix', namePrefix);
+    }
+
+    return this.http.get<CityApiResponse>(this.endpoint, { params });
+  }
   //данные о городе в попап
   cityDetailsPopup(wikiID: number) {
     return this.http
       .get<{ data: CityData }>(`${this.endpoint}/${wikiID}`)
       .pipe(map((resp) => resp.data));
   }
-
-  //получение списка городов определенной страны (фильтр)
-  getCitiesByCode(countryCode: string): Observable<CityApiResponse> {
-    return this.http.get<CityApiResponse>(
-      `${this.endpoint}?countryIds=${countryCode}`
-    );
-  }
-
-  //поиск города после фильтрации
-  searchCitiesAfterCode(
-    countryCode: string,
-    value: string | null | undefined
-  ): Observable<CityApiResponse> {
-    return this.http.get<CityApiResponse>(
-      `${this.endpoint}?countryIds=${countryCode}&namePrefix=${value}`
-    );
-  }
-
   //изменение города (для localStorage)
   updateCity(
     wikiDataId: string,

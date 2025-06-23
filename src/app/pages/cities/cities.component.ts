@@ -73,10 +73,12 @@ export class CitiesComponent implements OnInit {
   ];
   readonly dataSource = signal<CityData[]>([]);
   //------------------------
+
   //данные для пагинатора
   readonly pageSize = signal(5);
   readonly offset = signal(0);
   readonly totalCount = signal(0);
+  //---------------------
 
   readonly isLoading = signal(false);
 
@@ -95,7 +97,12 @@ export class CitiesComponent implements OnInit {
         switchMap((params) => {
           this.countryCode = params['countryCode'];
           return this.countryCode
-            ? this.dataService.getCitiesByCode(this.countryCode)
+            ? this.dataService.getAndSearchCitiesByCode(
+                undefined,
+                undefined,
+                this.countryCode,
+                undefined
+              )
             : this.initialData();
         }),
         tap((res) => {
@@ -123,7 +130,9 @@ export class CitiesComponent implements OnInit {
         switchMap((items) => {
           //города определенной страны
           if (this.countryCode) {
-            return this.dataService.searchCitiesAfterCode(
+            return this.dataService.getAndSearchCitiesByCode(
+              this.offset(),
+              this.pageSize(),
               this.countryCode,
               items.searchInput
             );
@@ -150,6 +159,28 @@ export class CitiesComponent implements OnInit {
           console.error(err);
         },
       });
+  }
+
+  loadDataByCode() {
+    const offset = this.offset();
+    const limit = this.pageSize();
+
+    this.isLoading.set(true);
+
+    return this.dataService
+      .getAndSearchCitiesByCode(
+        offset,
+        limit,
+        this.countryCode,
+        this.currentFilter || undefined
+      )
+      .pipe(
+        tap((res: CityApiResponse) => {
+          this.dataSource.set(res.data);
+          this.totalCount.set(res.metadata.totalCount);
+        }),
+        finalize(() => this.isLoading.set(false))
+      );
   }
   //главный метод (получение данных)
   initialData(): Observable<CityApiResponse> {
@@ -187,7 +218,11 @@ export class CitiesComponent implements OnInit {
 
     this.pageSize.set(newPageSize);
     this.offset.set(newOffset);
-    this.initialData().subscribe();
+    if (this.countryCode) {
+      this.loadDataByCode().subscribe();
+    } else {
+      this.initialData().subscribe();
+    }
   }
 
   closeFilter() {
