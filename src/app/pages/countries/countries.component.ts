@@ -13,7 +13,13 @@ import { CountriesService } from './services/country.service';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
 import { CountryData } from './models/country.interface';
@@ -69,9 +75,10 @@ export class CountriesComponent implements OnInit {
 
   readonly isLoading = signal(false);
 
-  readonly searchForm = this.fb.group({
-    searchInput: ['', [Validators.pattern(/^[A-Za-z]*$/)]],
-  });
+  readonly searchForm: FormGroup<{ searchInput: FormControl<string | null> }> =
+    this.fb.group({
+      searchInput: ['', [Validators.pattern(/^[A-Za-z\s]*$/)]],
+    });
   //текущее зн-е инпута
   private currentFilter: string | null = null;
 

@@ -1,5 +1,11 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import {
   MatDialogRef,
   MAT_DIALOG_DATA,
@@ -12,6 +18,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { CityData } from '../../models/city.interface';
 import { TranslocoDirective } from '@jsverse/transloco';
+import { EditCity } from '../../models/editCity.interface';
 
 @Component({
   selector: 'app-city-edit-popup',
@@ -33,7 +40,7 @@ export class CityEditPopupComponent {
   private readonly dialogRef = inject(MatDialogRef<CityEditPopupComponent>);
   readonly data = inject<CityData>(MAT_DIALOG_DATA);
 
-  editForm = this.fb.group({
+  readonly editForm: FormGroup<EditCity> = this.fb.group({
     name: [
       this.data.name,
       [Validators.required, Validators.pattern(/^[A-Za-z\s\-]+$/)],

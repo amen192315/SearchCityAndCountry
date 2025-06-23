@@ -20,7 +20,13 @@ import {
 } from 'rxjs';
 import { NavLinksComponent } from '../../core/components/nav-links/nav-buttons.component';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { CustomNumber } from '../../core/pipes/custom-number.pipe';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
@@ -89,9 +95,10 @@ export class CitiesComponent implements OnInit {
     Math.floor(this.offset() / this.pageSize())
   );
 
-  readonly searchForm = this.fb.group({
-    searchInput: ['', [Validators.pattern(/^[A-Za-z]*$/)]],
-  });
+  readonly searchForm: FormGroup<{ searchInput: FormControl<string | null> }> =
+    this.fb.group({
+      searchInput: ['', [Validators.pattern(/^[A-Za-z\s]*$/)]],
+    });
 
   private currentFilter: string | null = null;
   ngOnInit() {
