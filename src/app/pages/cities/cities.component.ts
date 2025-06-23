@@ -126,8 +126,8 @@ export class CitiesComponent implements OnInit {
           //все остальные города
           return items.searchInput
             ? this.dataService.getCities(
-                undefined,
-                undefined,
+                this.offset(),
+                this.pageSize(),
                 items.searchInput
               )
             : this.dataService.getCities();
