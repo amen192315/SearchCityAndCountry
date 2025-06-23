@@ -87,6 +87,7 @@ export class CitiesComponent implements OnInit {
     searchInput: ['', [Validators.pattern(/^[A-Za-z]*$/)]],
   });
 
+  private currentFilter: string | null = null;
   ngOnInit() {
     this.route.params
       .pipe(
@@ -95,7 +96,7 @@ export class CitiesComponent implements OnInit {
           this.countryCode = params['countryCode'];
           return this.countryCode
             ? this.dataService.getCitiesByCode(this.countryCode)
-            : this.initialData(0, this.pageSize());
+            : this.initialData();
         }),
         tap((res) => {
           this.isLoading.set(false);
@@ -114,7 +115,10 @@ export class CitiesComponent implements OnInit {
       .pipe(
         debounceTime(400),
         filter(() => this.searchForm.valid),
-        tap(() => this.isLoading.set(true)),
+        tap((res) => {
+          this.isLoading.set(true);
+          this.currentFilter = res.searchInput || null;
+        }),
         switchMap((items) => {
           //города определенной страны
           if (this.countryCode) {
@@ -146,16 +150,21 @@ export class CitiesComponent implements OnInit {
       });
   }
   //Начальные данные
-  initialData(offset: number, limit: number): Observable<CityApiResponse> {
+  initialData(): Observable<CityApiResponse> {
+    const offset = this.offset();
+    const limit = this.pageSize();
+
     this.isLoading.set(true);
 
-    return this.dataService.getCities(offset, limit).pipe(
-      tap((res: CityApiResponse) => {
-        this.dataSource.set(res.data);
-        this.totalCount.set(res.metadata.totalCount);
-      }),
-      finalize(() => this.isLoading.set(false))
-    );
+    return this.dataService
+      .getCities(offset, limit, this.currentFilter || undefined)
+      .pipe(
+        tap((res: CityApiResponse) => {
+          this.dataSource.set(res.data);
+          this.totalCount.set(res.metadata.totalCount);
+        }),
+        finalize(() => this.isLoading.set(false))
+      );
   }
   //геттер?
   get hasRouteData() {
@@ -174,7 +183,7 @@ export class CitiesComponent implements OnInit {
 
     this.pageSize.set(newPageSize);
     this.offset.set(newOffset);
-    this.initialData(this.offset(), this.pageSize()).subscribe();
+    this.initialData().subscribe();
   }
 
   closeFilter() {
