@@ -1,8 +1,8 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable, of } from 'rxjs';
-import { CityApiResponse, SearchCity } from '../models/city.interface';
-import { CityData } from '../models/cityData.interface';
+import { ApiResponse } from '../../../core/models/apiResponse.interface';
+import { CityData } from '../models/city.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -14,7 +14,11 @@ export class CitiesService {
 
   constructor() {}
   //получение всех городов
-  getCities(offset?: number, limit?: number, namePrefix?: string | null) {
+  getCities(
+    offset?: number,
+    limit?: number,
+    namePrefix?: string | null
+  ): Observable<ApiResponse<CityData>> {
     let params = new HttpParams();
 
     if (offset !== undefined) {
@@ -29,7 +33,7 @@ export class CitiesService {
       params = params.set('namePrefix', namePrefix);
     }
 
-    return this.http.get<CityApiResponse>(this.endpoint, { params });
+    return this.http.get<ApiResponse<CityData>>(this.endpoint, { params });
   }
   //получение списка городов определенной страны (фильтр) и поиск
   getAndSearchCitiesByCode(
@@ -37,7 +41,7 @@ export class CitiesService {
     limit?: number,
     countryIds?: string | null,
     namePrefix?: string | null
-  ) {
+  ): Observable<ApiResponse<CityData>> {
     let params = new HttpParams();
 
     if (offset !== undefined) {
@@ -56,7 +60,7 @@ export class CitiesService {
       params = params.set('namePrefix', namePrefix);
     }
 
-    return this.http.get<CityApiResponse>(this.endpoint, { params });
+    return this.http.get<ApiResponse<CityData>>(this.endpoint, { params });
   }
   //данные о городе в попап
   cityDetailsPopup(wikiID: number) {
@@ -64,11 +68,13 @@ export class CitiesService {
       .get<{ data: CityData }>(`${this.endpoint}/${wikiID}`)
       .pipe(map((resp) => resp.data));
   }
-  //изменение города (для localStorage)
+  /** 
+  //изменение города
   updateCity(
     wikiDataId: string,
     data: Partial<CityData>
   ): Observable<CityData> {
     return of({ ...data, wikiDataId } as CityData);
   }
+    */
 }

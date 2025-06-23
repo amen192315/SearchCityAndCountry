@@ -12,7 +12,7 @@ import {
 
 import { CustomNumber } from '../../../../core/pipes/custom-number.pipe';
 import { RoundPipe } from '../../../../core/pipes/round-number.pipe';
-import { CityData } from '../../models/cityData.interface';
+import { CityData } from '../../models/city.interface';
 import { TranslocoDirective } from '@jsverse/transloco';
 
 @Component({

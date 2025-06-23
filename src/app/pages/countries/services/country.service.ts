@@ -1,6 +1,8 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { CountryApiResponse, SearchCountry } from '../models/country.interface';
+import { CountryData } from '../models/country.interface';
+import { ApiResponse } from '../../../core/models/apiResponse.interface';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -12,7 +14,11 @@ export class CountriesService {
 
   constructor() {}
 
-  getCountries(offset?: number, limit?: number, namePrefix?: string | null) {
+  getCountries(
+    offset?: number,
+    limit?: number,
+    namePrefix?: string | null
+  ): Observable<ApiResponse<CountryData>> {
     let params = new HttpParams();
 
     if (offset !== undefined) {
@@ -27,6 +33,6 @@ export class CountriesService {
       params = params.set('namePrefix', namePrefix);
     }
 
-    return this.http.get<CountryApiResponse>(this.endpoint, { params });
+    return this.http.get<ApiResponse<CountryData>>(this.endpoint, { params });
   }
 }

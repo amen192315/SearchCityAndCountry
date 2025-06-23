@@ -16,14 +16,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
-import { CountryData } from './models/countryData.interface';
+import { CountryData } from './models/country.interface';
 import { NavLinksComponent } from '../../core/components/nav-links/nav-buttons.component';
 import {
   MatPaginator,
   MatPaginatorModule,
   PageEvent,
 } from '@angular/material/paginator';
-import { CountryApiResponse } from './models/country.interface';
+import { ApiResponse } from '../../core/models/apiResponse.interface';
 import { TranslocoDirective, TranslocoModule } from '@jsverse/transloco';
 
 @Component({
@@ -104,7 +104,7 @@ export class CountriesComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
-        next: (res: CountryApiResponse) => {
+        next: (res: ApiResponse<CountryData>) => {
           this.dataSource.set(res.data);
         },
         error: (err) => {
@@ -114,7 +114,7 @@ export class CountriesComponent implements OnInit {
   }
 
   //начальные данные
-  private loadData() {
+  private loadData(): void {
     const offset = this.offset();
     const limit = this.pageSize();
 
@@ -127,7 +127,7 @@ export class CountriesComponent implements OnInit {
         finalize(() => this.isLoading.set(false))
       )
       .subscribe({
-        next: (res: CountryApiResponse) => {
+        next: (res: ApiResponse<CountryData>) => {
           this.dataSource.set(res.data);
           this.totalCount.set(res.metadata.totalCount);
         },
@@ -142,7 +142,7 @@ export class CountriesComponent implements OnInit {
   }
 
   //пагинатор
-  onPageChange(event: PageEvent) {
+  onPageChange(event: PageEvent): void {
     const newPageIndex = event.pageIndex;
     const newPageSize = event.pageSize;
 
@@ -154,7 +154,7 @@ export class CountriesComponent implements OnInit {
   }
 
   //прокидываем данные в урл
-  goToCities(countryCode: string) {
+  goToCities(countryCode: string): void {
     this.router.navigate(['/cities', countryCode]);
   }
 }

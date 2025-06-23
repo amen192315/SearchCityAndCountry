@@ -10,7 +10,7 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { CityData } from '../../models/cityData.interface';
+import { CityData } from '../../models/city.interface';
 import { TranslocoDirective } from '@jsverse/transloco';
 
 @Component({
@@ -69,13 +69,13 @@ export class CityEditPopupComponent {
   }
 
   //сохранение ф-мы
-  saveChanges() {
+  saveChanges(): void {
     if (this.editForm.valid) {
       this.dialogRef.close(this.editForm.value);
     }
   }
 
-  close() {
+  close(): void {
     this.dialogRef.close();
   }
 }

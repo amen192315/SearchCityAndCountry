@@ -27,13 +27,13 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { CityDetailsPopupComponent } from './components/city-details-popup/city-details-popup.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CityEditPopupComponent } from './components/city-edit-popup/city-edit-popup.component';
-import { CityData } from './models/cityData.interface';
+import { CityData } from './models/city.interface';
 import {
   PageEvent,
   MatPaginator,
   MatPaginatorModule,
 } from '@angular/material/paginator';
-import { CityApiResponse } from './models/city.interface';
+import { ApiResponse } from '../../core/models/apiResponse.interface';
 import { TranslocoDirective } from '@jsverse/transloco';
 
 @Component({
@@ -162,7 +162,7 @@ export class CitiesComponent implements OnInit {
   }
 
   //метод для получения отфильтрованных данных + филтрация по инпуту
-  loadDataByCode() {
+  loadDataByCode(): Observable<ApiResponse<CityData>> {
     const offset = this.offset();
     const limit = this.pageSize();
 
@@ -176,7 +176,7 @@ export class CitiesComponent implements OnInit {
         this.currentFilter || undefined
       )
       .pipe(
-        tap((res: CityApiResponse) => {
+        tap((res: ApiResponse<CityData>) => {
           this.dataSource.set(res.data);
           this.totalCount.set(res.metadata.totalCount);
         }),
@@ -185,7 +185,7 @@ export class CitiesComponent implements OnInit {
   }
 
   //главный метод (получение данных)
-  initialData(): Observable<CityApiResponse> {
+  initialData(): Observable<ApiResponse<CityData>> {
     const offset = this.offset();
     const limit = this.pageSize();
 
@@ -194,7 +194,7 @@ export class CitiesComponent implements OnInit {
     return this.dataService
       .getCities(offset, limit, this.currentFilter || undefined)
       .pipe(
-        tap((res: CityApiResponse) => {
+        tap((res: ApiResponse<CityData>) => {
           this.dataSource.set(res.data);
           this.totalCount.set(res.metadata.totalCount);
         }),
@@ -212,7 +212,7 @@ export class CitiesComponent implements OnInit {
     return Math.floor(this.offset() / this.pageSize());
   }
   // пагинатор
-  onPageChange(event: PageEvent) {
+  onPageChange(event: PageEvent): void {
     const newPageIndex = event.pageIndex;
     const newPageSize = event.pageSize;
 
