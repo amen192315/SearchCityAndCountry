@@ -161,6 +161,7 @@ export class CitiesComponent implements OnInit {
       });
   }
 
+  //метод для получения отфильтрованных данных + филтрация по инпуту
   loadDataByCode() {
     const offset = this.offset();
     const limit = this.pageSize();
@@ -182,6 +183,7 @@ export class CitiesComponent implements OnInit {
         finalize(() => this.isLoading.set(false))
       );
   }
+
   //главный метод (получение данных)
   initialData(): Observable<CityApiResponse> {
     const offset = this.offset();
