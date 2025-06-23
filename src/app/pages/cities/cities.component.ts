@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   DestroyRef,
   inject,
   OnInit,
@@ -84,6 +85,9 @@ export class CitiesComponent implements OnInit {
 
   public firstCityName!: string;
   public countryCode?: string;
+  public pageIndex = computed(() =>
+    Math.floor(this.offset() / this.pageSize())
+  );
 
   readonly searchForm = this.fb.group({
     searchInput: ['', [Validators.pattern(/^[A-Za-z]*$/)]],
@@ -202,15 +206,6 @@ export class CitiesComponent implements OnInit {
       );
   }
 
-  //геттер или hasRouteData = computed(() => !!this.countryCode);
-  get hasRouteData() {
-    return this.countryCode ? true : false;
-  }
-
-  //геттер или pageIndex = computed(() => Math.floor(this.offset() / this.pageSize()));
-  get pageIndex() {
-    return Math.floor(this.offset() / this.pageSize());
-  }
   // пагинатор
   onPageChange(event: PageEvent): void {
     const newPageIndex = event.pageIndex;
