@@ -73,10 +73,12 @@ export class CitiesComponent implements OnInit {
   ];
   readonly dataSource = signal<CityData[]>([]);
   //------------------------
+
   //данные для пагинатора
   readonly pageSize = signal(5);
   readonly offset = signal(0);
   readonly totalCount = signal(0);
+  //---------------------
 
   readonly isLoading = signal(false);
 
@@ -158,7 +160,8 @@ export class CitiesComponent implements OnInit {
         },
       });
   }
-  filterAndsome() {
+
+  loadDataByCode() {
     const offset = this.offset();
     const limit = this.pageSize();
 
@@ -214,7 +217,7 @@ export class CitiesComponent implements OnInit {
     this.pageSize.set(newPageSize);
     this.offset.set(newOffset);
     if (this.countryCode) {
-      this.filterAndsome().subscribe();
+      this.loadDataByCode().subscribe();
     } else {
       this.initialData().subscribe();
     }
