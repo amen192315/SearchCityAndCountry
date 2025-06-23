@@ -101,6 +101,7 @@ export class CitiesComponent implements OnInit {
         tap((res) => {
           this.isLoading.set(false);
           this.firstCityName = res.data[0].country;
+          this.totalCount.set(res.metadata.totalCount);
         }),
         takeUntilDestroyed(this.destroyRef)
       )
@@ -136,8 +137,9 @@ export class CitiesComponent implements OnInit {
               )
             : this.dataService.getCities();
         }),
-        tap(() => {
+        tap((res) => {
           this.isLoading.set(false);
+          this.totalCount.set(res.metadata.totalCount);
         }),
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.isLoading.set(false))

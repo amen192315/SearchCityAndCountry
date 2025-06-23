@@ -85,6 +85,7 @@ export class CountriesComponent implements OnInit {
         tap((val) => {
           this.isLoading.set(true);
           this.currentFilter = val.searchInput || null;
+
           this.offset.set(0);
         }),
         switchMap(() => {
@@ -96,8 +97,9 @@ export class CountriesComponent implements OnInit {
             )
             .pipe(finalize(() => this.isLoading.set(false)));
         }),
-        tap(() => {
+        tap((res) => {
           this.isLoading.set(false);
+          this.totalCount.set(res.metadata.totalCount);
         }),
         takeUntilDestroyed(this.destroyRef)
       )
