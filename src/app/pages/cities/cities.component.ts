@@ -116,7 +116,6 @@ export class CitiesComponent implements OnInit {
       .pipe(
         tap(() => {
           this.isLoading.set(true);
-          this.offset.set(0);
         }),
         switchMap(() => {
           return this.countryCode
@@ -146,7 +145,6 @@ export class CitiesComponent implements OnInit {
         tap((res) => {
           this.isLoading.set(true);
           this.currentFilter = res.searchInput || null;
-          this.offset.set(0);
           this.updateQueryParams();
         }),
         switchMap(() => {
