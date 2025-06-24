@@ -118,11 +118,7 @@ export class CitiesComponent implements OnInit {
           this.isLoading.set(true);
         }),
         switchMap(() => {
-          return this.countryCode
-            ? this.dataService.getCities({
-                countryIds: this.countryCode,
-              })
-            : this.initialData();
+          return this.loadCities();
         }),
         tap((res) => {
           this.isLoading.set(false);
@@ -148,11 +144,7 @@ export class CitiesComponent implements OnInit {
           this.updateQueryParams();
         }),
         switchMap(() => {
-          return this.dataService.getCities({
-            ...this.queryParams(),
-            ...(this.currentFilter ? { namePrefix: this.currentFilter } : {}),
-            ...(this.countryCode ? { countryIds: this.countryCode } : {}),
-          });
+          return this.loadCities();
         }),
         tap((res) => {
           this.isLoading.set(false);
@@ -168,25 +160,26 @@ export class CitiesComponent implements OnInit {
         },
       });
   }
-
-  //главный метод (получение данных)
-  initialData(): Observable<ApiResponse<CityData>> {
+  //метод прогрузки данных (старался убрать дублирующий код)
+  private loadCities(
+    params?: Partial<GetParams>
+  ): Observable<ApiResponse<CityData>> {
     this.isLoading.set(true);
-    this.updateQueryParams();
 
-    return this.dataService
-      .getCities({
-        ...this.queryParams(),
-        ...(this.currentFilter ? { namePrefix: this.currentFilter } : {}),
-        ...(this.countryCode ? { countryIds: this.countryCode } : {}),
-      })
-      .pipe(
-        tap((res: ApiResponse<CityData>) => {
-          this.dataSource.set(res.data);
-          this.totalCount.set(res.metadata.totalCount);
-        }),
-        finalize(() => this.isLoading.set(false))
-      );
+    const queryParams = {
+      ...this.queryParams(),
+      ...(this.currentFilter ? { namePrefix: this.currentFilter } : {}),
+      ...(this.countryCode ? { countryIds: this.countryCode } : {}),
+      ...params,
+    };
+
+    return this.dataService.getCities(queryParams).pipe(
+      tap((res: ApiResponse<CityData>) => {
+        this.dataSource.set(res.data);
+        this.totalCount.set(res.metadata.totalCount);
+      }),
+      finalize(() => this.isLoading.set(false))
+    );
   }
 
   // пагинатор
@@ -198,19 +191,15 @@ export class CitiesComponent implements OnInit {
 
     this.pageSize.set(newPageSize);
     this.offset.set(newOffset);
-    this.initialData().subscribe();
+    this.updateQueryParams();
+    this.loadCities().subscribe();
   }
+
   //обновляем данные для query параметрова
   private updateQueryParams(): void {
     this.queryParams.set({
       offset: this.offset(),
       limit: this.pageSize(),
-    });
-  }
-
-  closeFilter() {
-    this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
-      this.router.navigate(['/cities']);
     });
   }
 
@@ -220,6 +209,12 @@ export class CitiesComponent implements OnInit {
       city.wikiDataId === wikiDataId ? { ...city, ...updatedData } : city
     );
     this.dataSource.set(updatedCities);
+  }
+
+  closeFilter() {
+    this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+      this.router.navigate(['/cities']);
+    });
   }
 
   //попап, показывает данные о городе

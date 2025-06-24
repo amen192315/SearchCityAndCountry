@@ -9,7 +9,14 @@ import {
   ViewChild,
 } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
-import { debounceTime, filter, finalize, switchMap, tap } from 'rxjs';
+import {
+  debounceTime,
+  filter,
+  finalize,
+  Observable,
+  switchMap,
+  tap,
+} from 'rxjs';
 import { CountriesService } from './services/country.service';
 import { GetParams } from '../../core/models/getParams.interface';
 import { CommonModule } from '@angular/common';
@@ -107,13 +114,7 @@ export class CountriesComponent implements OnInit {
           this.offset.set(0);
         }),
         switchMap(() => {
-          return this.dataService
-            .getCountries({
-              ...this.queryParams(),
-              //можно namePrefix: this.currentFilter || undef, но undef вернет data:[]
-              ...(this.currentFilter ? { namePrefix: this.currentFilter } : {}),
-            })
-            .pipe(finalize(() => this.isLoading.set(false)));
+          return this.loadCountries();
         }),
         tap((res) => {
           this.isLoading.set(false);
@@ -133,28 +134,32 @@ export class CountriesComponent implements OnInit {
 
   //начальные данные
   private loadData(): void {
+    this.loadCountries()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        error: (err) => console.error(err),
+      });
+  }
+  //метод прогрузки данных (старался убрать дублирующий код)
+  private loadCountries(
+    params?: Partial<GetParams>
+  ): Observable<ApiResponse<CountryData>> {
     this.isLoading.set(true);
-
     this.updateQueryParams();
 
-    this.dataService
-      .getCountries({
-        ...this.queryParams(),
-        ...(this.currentFilter ? { namePrefix: this.currentFilter } : {}),
-      })
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.isLoading.set(false))
-      )
-      .subscribe({
-        next: (res: ApiResponse<CountryData>) => {
-          this.dataSource.set(res.data);
-          this.totalCount.set(res.metadata.totalCount);
-        },
-        error: (err) => {
-          console.error(err);
-        },
-      });
+    const queryParams = {
+      ...this.queryParams(),
+      ...(this.currentFilter ? { namePrefix: this.currentFilter } : {}),
+      ...params,
+    };
+
+    return this.dataService.getCountries(queryParams).pipe(
+      tap((res: ApiResponse<CountryData>) => {
+        this.dataSource.set(res.data);
+        this.totalCount.set(res.metadata.totalCount);
+      }),
+      finalize(() => this.isLoading.set(false))
+    );
   }
 
   private updateQueryParams(): void {
