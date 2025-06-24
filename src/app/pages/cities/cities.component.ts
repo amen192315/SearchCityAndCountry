@@ -43,6 +43,7 @@ import {
 } from '@angular/material/paginator';
 import { ApiResponse } from '../../core/models/apiResponse.interface';
 import { TranslocoDirective } from '@jsverse/transloco';
+import { GetParams } from '../../core/models/getParams.interface';
 
 @Component({
   selector: 'app-cities',
@@ -97,24 +98,31 @@ export class CitiesComponent implements OnInit {
     Math.floor(this.offset() / this.pageSize())
   );
 
+  //query параметры
+  private readonly queryParams = signal<GetParams>({
+    offset: this.offset(),
+    limit: this.pageSize(),
+  });
+
   readonly searchForm: FormGroup<{ searchInput: FormControl<string | null> }> =
     this.fb.group({
       searchInput: ['', [Validators.pattern(/^[A-Za-z\s]*$/)]],
     });
 
   private currentFilter: string | null = null;
+
   ngOnInit() {
     this.route.queryParams
       .pipe(
-        tap(() => this.isLoading.set(true)),
+        tap(() => {
+          this.isLoading.set(true);
+          this.offset.set(0);
+        }),
         switchMap(() => {
           return this.countryCode
-            ? this.dataService.getAndSearchCitiesByCode(
-                undefined,
-                undefined,
-                this.countryCode,
-                undefined
-              )
+            ? this.dataService.getCities({
+                countryIds: this.countryCode,
+              })
             : this.initialData();
         }),
         tap((res) => {
@@ -138,25 +146,23 @@ export class CitiesComponent implements OnInit {
         tap((res) => {
           this.isLoading.set(true);
           this.currentFilter = res.searchInput || null;
+          this.offset.set(0);
+          this.updateQueryParams();
         }),
         switchMap((items) => {
           //города определенной страны
           if (this.countryCode) {
-            return this.dataService.getAndSearchCitiesByCode(
-              this.offset(),
-              this.pageSize(),
-              this.countryCode,
-              items.searchInput
-            );
+            return this.dataService.getCities({
+              ...this.queryParams(),
+              ...(this.currentFilter ? { namePrefix: this.currentFilter } : {}),
+              ...(this.countryCode ? { countryIds: this.countryCode } : {}),
+            });
           }
-          //все остальные города
-          return items.searchInput
-            ? this.dataService.getCities(
-                this.offset(),
-                this.pageSize(),
-                items.searchInput
-              )
-            : this.dataService.getCities();
+          //все остальные города - здесь была ошибка, не передавался namePrefix
+          return this.dataService.getCities({
+            ...this.queryParams(),
+            ...(this.currentFilter ? { namePrefix: this.currentFilter } : {}),
+          });
         }),
         tap((res) => {
           this.isLoading.set(false);
@@ -173,38 +179,17 @@ export class CitiesComponent implements OnInit {
       });
   }
 
-  //метод для получения отфильтрованных данных + филтрация по инпуту
-  loadDataByCode(): Observable<ApiResponse<CityData>> {
-    const offset = this.offset();
-    const limit = this.pageSize();
-
-    this.isLoading.set(true);
-
-    return this.dataService
-      .getAndSearchCitiesByCode(
-        offset,
-        limit,
-        this.countryCode,
-        this.currentFilter || undefined
-      )
-      .pipe(
-        tap((res: ApiResponse<CityData>) => {
-          this.dataSource.set(res.data);
-          this.totalCount.set(res.metadata.totalCount);
-        }),
-        finalize(() => this.isLoading.set(false))
-      );
-  }
-
   //главный метод (получение данных)
   initialData(): Observable<ApiResponse<CityData>> {
-    const offset = this.offset();
-    const limit = this.pageSize();
-
     this.isLoading.set(true);
+    this.updateQueryParams();
 
     return this.dataService
-      .getCities(offset, limit, this.currentFilter || undefined)
+      .getCities({
+        ...this.queryParams(),
+        ...(this.currentFilter ? { namePrefix: this.currentFilter } : {}),
+        ...(this.countryCode ? { countryIds: this.countryCode } : {}),
+      })
       .pipe(
         tap((res: ApiResponse<CityData>) => {
           this.dataSource.set(res.data);
@@ -223,11 +208,14 @@ export class CitiesComponent implements OnInit {
 
     this.pageSize.set(newPageSize);
     this.offset.set(newOffset);
-    if (this.countryCode) {
-      this.loadDataByCode().subscribe();
-    } else {
-      this.initialData().subscribe();
-    }
+    this.initialData().subscribe();
+  }
+  //обновляем данные для query параметров
+  private updateQueryParams(): void {
+    this.queryParams.set({
+      offset: this.offset(),
+      limit: this.pageSize(),
+    });
   }
 
   closeFilter() {

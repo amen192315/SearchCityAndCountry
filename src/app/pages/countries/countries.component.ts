@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   DestroyRef,
   inject,
   OnInit,
@@ -10,6 +11,7 @@ import {
 import { MatTableModule } from '@angular/material/table';
 import { debounceTime, filter, finalize, switchMap, tap } from 'rxjs';
 import { CountriesService } from './services/country.service';
+import { GetParams } from '../../core/models/getParams.interface';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
@@ -75,12 +77,21 @@ export class CountriesComponent implements OnInit {
 
   readonly isLoading = signal(false);
 
+  public pageIndex = computed(() =>
+    Math.floor(this.offset() / this.pageSize())
+  );
+
   readonly searchForm: FormGroup<{ searchInput: FormControl<string | null> }> =
     this.fb.group({
       searchInput: ['', [Validators.pattern(/^[A-Za-z\s]*$/)]],
     });
   //текущее зн-е инпута
   private currentFilter: string | null = null;
+  //query параметры
+  private readonly queryParams = signal<GetParams>({
+    offset: this.offset(),
+    limit: this.pageSize(),
+  });
 
   ngOnInit() {
     this.loadData();
@@ -92,16 +103,16 @@ export class CountriesComponent implements OnInit {
         tap((val) => {
           this.isLoading.set(true);
           this.currentFilter = val.searchInput || null;
-
+          this.updateQueryParams();
           this.offset.set(0);
         }),
         switchMap(() => {
           return this.dataService
-            .getCountries(
-              this.offset(),
-              this.pageSize(),
-              this.currentFilter || undefined
-            )
+            .getCountries({
+              ...this.queryParams(),
+              //можно namePrefix: this.currentFilter || undef, но undef вернет data:[]
+              ...(this.currentFilter ? { namePrefix: this.currentFilter } : {}),
+            })
             .pipe(finalize(() => this.isLoading.set(false)));
         }),
         tap((res) => {
@@ -122,13 +133,15 @@ export class CountriesComponent implements OnInit {
 
   //начальные данные
   private loadData(): void {
-    const offset = this.offset();
-    const limit = this.pageSize();
-
     this.isLoading.set(true);
 
+    this.updateQueryParams();
+
     this.dataService
-      .getCountries(offset, limit, this.currentFilter || undefined)
+      .getCountries({
+        ...this.queryParams(),
+        ...(this.currentFilter ? { namePrefix: this.currentFilter } : {}),
+      })
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.isLoading.set(false))
@@ -144,8 +157,11 @@ export class CountriesComponent implements OnInit {
       });
   }
 
-  get pageIndex() {
-    return Math.floor(this.offset() / this.pageSize());
+  private updateQueryParams(): void {
+    this.queryParams.set({
+      offset: this.offset(),
+      limit: this.pageSize(),
+    });
   }
 
   //пагинатор

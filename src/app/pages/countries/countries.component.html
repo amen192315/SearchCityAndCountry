@@ -103,7 +103,7 @@
   <mat-paginator
     [length]="totalCount()"
     [pageSize]="pageSize()"
-    [pageIndex]="pageIndex"
+    [pageIndex]="pageIndex()"
     [pageSizeOptions]="[5, 10]"
     showFirstLastButtons
     (page)="onPageChange($event)"

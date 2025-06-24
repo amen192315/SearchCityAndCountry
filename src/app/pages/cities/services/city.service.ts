@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { map, Observable, of } from 'rxjs';
 import { ApiResponse } from '../../../core/models/apiResponse.interface';
 import { CityData } from '../models/city.interface';
+import { GetParams } from '../../../core/models/getParams.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -14,29 +15,12 @@ export class CitiesService {
 
   constructor() {}
   //получение всех городов
-  getCities(
-    offset?: number,
-    limit?: number,
-    namePrefix?: string | null
-  ): Observable<ApiResponse<CityData>> {
-    let params = new HttpParams();
 
-    if (offset !== undefined) {
-      params = params.set('offset', offset.toString());
-    }
-
-    if (limit !== undefined) {
-      params = params.set('limit', limit.toString());
-    }
-
-    if (namePrefix !== undefined && namePrefix !== null) {
-      params = params.set('namePrefix', namePrefix);
-    }
-
+  getCities(params: GetParams = {}): Observable<ApiResponse<CityData>> {
     return this.http.get<ApiResponse<CityData>>(this.endpoint, { params });
   }
   //получение списка городов определенной страны (фильтр) и поиск
-  getAndSearchCitiesByCode(
+  /**  getAndSearchCitiesByCode(
     offset?: number,
     limit?: number,
     countryIds?: string | null,
@@ -62,19 +46,11 @@ export class CitiesService {
 
     return this.http.get<ApiResponse<CityData>>(this.endpoint, { params });
   }
+    */
   //данные о городе в попап
   cityDetailsPopup(wikiID: number) {
     return this.http
       .get<{ data: CityData }>(`${this.endpoint}/${wikiID}`)
       .pipe(map((resp) => resp.data));
   }
-  /** 
-  //изменение города
-  updateCity(
-    wikiDataId: string,
-    data: Partial<CityData>
-  ): Observable<CityData> {
-    return of({ ...data, wikiDataId } as CityData);
-  }
-    */
 }
