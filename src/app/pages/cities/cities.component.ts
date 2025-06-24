@@ -7,6 +7,7 @@ import {
   Input,
   OnInit,
   signal,
+  ViewChild,
 } from '@angular/core';
 import { CitiesService } from './services/city.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -19,7 +20,6 @@ import {
   switchMap,
   tap,
 } from 'rxjs';
-import { NavLinksComponent } from '../../core/components/nav-links/nav-buttons.component';
 import { CommonModule } from '@angular/common';
 import {
   FormBuilder,
@@ -44,6 +44,14 @@ import {
 import { ApiResponse } from '../../core/models/apiResponse.interface';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { GetLocationsParams } from '../../core/models/getLocationsParams.interface';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatOptionModule } from '@angular/material/core';
+import {
+  CdkVirtualScrollViewport,
+  ScrollingModule,
+} from '@angular/cdk/scrolling';
 
 @Component({
   selector: 'app-cities',
@@ -58,6 +66,11 @@ import { GetLocationsParams } from '../../core/models/getLocationsParams.interfa
     MatPaginator,
     MatPaginatorModule,
     TranslocoDirective,
+    MatFormFieldModule,
+    MatInputModule,
+    MatAutocompleteModule,
+    MatOptionModule,
+    ScrollingModule,
   ],
   templateUrl: './cities.component.html',
   styleUrl: './cities.component.scss',
@@ -65,6 +78,10 @@ import { GetLocationsParams } from '../../core/models/getLocationsParams.interfa
 })
 export class CitiesComponent implements OnInit {
   @Input() countryCode?: string;
+
+  @ViewChild(CdkVirtualScrollViewport) viewport!: CdkVirtualScrollViewport;
+
+  private hasMoreData = signal(true);
 
   private readonly dataService = inject(CitiesService);
   private readonly fb = inject(FormBuilder);
@@ -163,6 +180,12 @@ export class CitiesComponent implements OnInit {
   private loadCities(
     params?: Partial<GetLocationsParams>
   ): Observable<ApiResponse<CityData>> {
+    const loadMore = false;
+    if (!loadMore) {
+      this.offset.set(0);
+      this.hasMoreData.set(true);
+    }
+
     this.isLoading.set(true);
 
     const queryParams = {
@@ -174,11 +197,37 @@ export class CitiesComponent implements OnInit {
 
     return this.dataService.getCities(queryParams).pipe(
       tap((res: ApiResponse<CityData>) => {
-        this.dataSource.set(res.data);
+        if (loadMore) {
+          // Если это догрузка, добавляем к существующим данным
+          this.dataSource.update((prev) => [...prev, ...res.data]);
+        } else {
+          // Иначе заменяем данные
+          this.dataSource.set(res.data);
+        }
+
         this.totalCount.set(res.metadata.totalCount);
+
+        // Проверяем, есть ли еще данные для загрузки
+        if (res.data.length < this.pageSize()) {
+          this.hasMoreData.set(false);
+        }
       }),
       finalize(() => this.isLoading.set(false))
     );
+  }
+  onScroll(): void {
+    if (this.isLoading() || !this.hasMoreData()) return;
+
+    const viewport = this.viewport;
+    const end = viewport.getRenderedRange().end;
+    const total = viewport.getDataLength();
+
+    // Если приближаемся к концу списка
+    if (end === total) {
+      this.offset.update((prev) => prev + this.pageSize());
+      this.updateQueryParams();
+      this.loadCities({}).subscribe();
+    }
   }
 
   // пагинатор

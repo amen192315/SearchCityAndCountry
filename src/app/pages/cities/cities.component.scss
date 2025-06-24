@@ -34,6 +34,24 @@
     }
   }
 }
+.autocomplete-viewport {
+  height: 200px; // Фиксированная высота для viewport
+  width: 100%;
+
+  mat-option {
+    height: 50px; // Высота каждого элемента должна соответствовать itemSize
+    box-sizing: border-box;
+  }
+}
+
+.wrapper__search {
+  position: relative;
+  width: 100%;
+}
+
+mat-form-field {
+  width: 100%;
+}
 /* Основные стили таблицы */
 .table-container {
   width: 100%;
