@@ -2,6 +2,7 @@
   display: flex;
   gap: 16px;
   margin-bottom: 20px;
+  position: relative;
 }
 
 .nav-button {
@@ -30,6 +31,15 @@
   height: 2px;
   background-color: #191C30E6;
   animation: underline 0.3s ease;
+}
+.nav-buttons-container::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: #e0e0e0; 
 }
 
 @keyframes underline {

@@ -55,7 +55,6 @@ import { GetParams } from '../../core/models/getParams.interface';
     ReactiveFormsModule,
     MatIconModule,
     MatDialogModule,
-    NavLinksComponent,
     MatPaginator,
     MatPaginatorModule,
     TranslocoDirective,

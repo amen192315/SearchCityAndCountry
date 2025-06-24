@@ -49,7 +49,7 @@ import { TranslocoDirective, TranslocoModule } from '@jsverse/transloco';
     MatIconModule,
     ReactiveFormsModule,
     MatProgressSpinnerModule,
-    NavLinksComponent,
+
     MatPaginatorModule,
     TranslocoDirective,
     TranslocoModule,
