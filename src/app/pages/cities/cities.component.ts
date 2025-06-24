@@ -149,19 +149,11 @@ export class CitiesComponent implements OnInit {
           this.offset.set(0);
           this.updateQueryParams();
         }),
-        switchMap((items) => {
-          //города определенной страны
-          if (this.countryCode) {
-            return this.dataService.getCities({
-              ...this.queryParams(),
-              ...(this.currentFilter ? { namePrefix: this.currentFilter } : {}),
-              ...(this.countryCode ? { countryIds: this.countryCode } : {}),
-            });
-          }
-          //все остальные города - здесь была ошибка, не передавался namePrefix
+        switchMap(() => {
           return this.dataService.getCities({
             ...this.queryParams(),
             ...(this.currentFilter ? { namePrefix: this.currentFilter } : {}),
+            ...(this.countryCode ? { countryIds: this.countryCode } : {}),
           });
         }),
         tap((res) => {
@@ -210,7 +202,7 @@ export class CitiesComponent implements OnInit {
     this.offset.set(newOffset);
     this.initialData().subscribe();
   }
-  //обновляем данные для query параметров
+  //обновляем данные для query параметрова
   private updateQueryParams(): void {
     this.queryParams.set({
       offset: this.offset(),
