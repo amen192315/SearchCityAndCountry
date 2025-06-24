@@ -4,6 +4,7 @@ import {
   computed,
   DestroyRef,
   inject,
+  Input,
   OnInit,
   signal,
 } from '@angular/core';
@@ -63,6 +64,8 @@ import { TranslocoDirective } from '@jsverse/transloco';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CitiesComponent implements OnInit {
+  @Input() countryCode?: string;
+
   private readonly dataService = inject(CitiesService);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
@@ -90,7 +93,6 @@ export class CitiesComponent implements OnInit {
   readonly isLoading = signal(false);
 
   public firstCityName!: string;
-  public countryCode?: string;
   public pageIndex = computed(() =>
     Math.floor(this.offset() / this.pageSize())
   );
@@ -102,11 +104,10 @@ export class CitiesComponent implements OnInit {
 
   private currentFilter: string | null = null;
   ngOnInit() {
-    this.route.params
+    this.route.queryParams
       .pipe(
         tap(() => this.isLoading.set(true)),
-        switchMap((params) => {
-          this.countryCode = params['countryCode'];
+        switchMap(() => {
           return this.countryCode
             ? this.dataService.getAndSearchCitiesByCode(
                 undefined,
@@ -230,7 +231,9 @@ export class CitiesComponent implements OnInit {
   }
 
   closeFilter() {
-    this.router.navigate(['/cities']);
+    this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+      this.router.navigate(['/cities']);
+    });
   }
 
   //Обновляем данные в таблице
@@ -271,9 +274,5 @@ export class CitiesComponent implements OnInit {
         this.updateCity(city.wikiDataId, result);
       }
     });
-  }
-
-  clearFilter() {
-    this.router.navigate(['/cities']);
   }
 }

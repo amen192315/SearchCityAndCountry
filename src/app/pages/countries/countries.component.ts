@@ -162,6 +162,6 @@ export class CountriesComponent implements OnInit {
 
   //прокидываем данные в урл
   goToCities(countryCode: string): void {
-    this.router.navigate(['/cities', countryCode]);
+    this.router.navigate(['/cities'], { queryParams: { countryCode } });
   }
 }

@@ -22,10 +22,6 @@ export const routes: Routes = [
         path: 'cities',
         component: CitiesComponent,
       },
-      {
-        path: 'cities/:countryCode',
-        component: CitiesComponent,
-      },
     ],
   },
   { path: '404', component: NotFoundComponent },
