@@ -35,11 +35,11 @@
   }
 }
 .autocomplete-viewport {
-  height: 200px; // Фиксированная высота для viewport
+  height: 200px; 
   width: 100%;
 
   mat-option {
-    height: 50px; // Высота каждого элемента должна соответствовать itemSize
+    height: 50px; 
     box-sizing: border-box;
   }
 }

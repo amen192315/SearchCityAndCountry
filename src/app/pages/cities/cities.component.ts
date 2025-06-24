@@ -180,37 +180,20 @@ export class CitiesComponent implements OnInit {
   private loadCities(
     params?: Partial<GetLocationsParams>
   ): Observable<ApiResponse<CityData>> {
-    const loadMore = false;
-    if (!loadMore) {
-      this.offset.set(0);
-      this.hasMoreData.set(true);
-    }
-
+    // Убрали принудительный сброс offset
     this.isLoading.set(true);
 
     const queryParams = {
       ...this.queryParams(),
       ...(this.currentFilter ? { namePrefix: this.currentFilter } : {}),
       ...(this.countryCode ? { countryIds: this.countryCode } : {}),
-      ...params,
+      ...params, // Добавляем переданные параметры
     };
 
     return this.dataService.getCities(queryParams).pipe(
       tap((res: ApiResponse<CityData>) => {
-        if (loadMore) {
-          // Если это догрузка, добавляем к существующим данным
-          this.dataSource.update((prev) => [...prev, ...res.data]);
-        } else {
-          // Иначе заменяем данные
-          this.dataSource.set(res.data);
-        }
-
+        this.dataSource.set(res.data); // Всегда заменяем данные для пагинации
         this.totalCount.set(res.metadata.totalCount);
-
-        // Проверяем, есть ли еще данные для загрузки
-        if (res.data.length < this.pageSize()) {
-          this.hasMoreData.set(false);
-        }
       }),
       finalize(() => this.isLoading.set(false))
     );
@@ -240,7 +223,10 @@ export class CitiesComponent implements OnInit {
     this.pageSize.set(newPageSize);
     this.offset.set(newOffset);
     this.updateQueryParams();
-    this.loadCities().subscribe();
+    this.loadCities({
+      offset: newOffset,
+      limit: newPageSize,
+    }).subscribe();
   }
 
   //обновляем данные для query параметрова
