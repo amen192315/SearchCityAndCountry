@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { ApiResponse } from '../../../core/models/apiResponse.interface';
 import { CityData } from '../models/city.interface';
-import { GetLocationsParams } from '../../../core/models/GetLocationsParams.interface';
+import { GetLocationsParams } from '../../../core/models/getLocationsParams.interface';
 
 @Injectable({
   providedIn: 'root',

@@ -18,7 +18,7 @@ import {
   tap,
 } from 'rxjs';
 import { CountriesService } from './services/country.service';
-import { GetLocationsParams } from '../../core/models/GetLocationsParams.interface';
+import { GetLocationsParams } from '../../core/models/getLocationsParams.interface';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';

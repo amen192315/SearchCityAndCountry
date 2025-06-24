@@ -43,7 +43,7 @@ import {
 } from '@angular/material/paginator';
 import { ApiResponse } from '../../core/models/apiResponse.interface';
 import { TranslocoDirective } from '@jsverse/transloco';
-import { GetLocationsParams } from '../../core/models/GetLocationsParams.interface';
+import { GetLocationsParams } from '../../core/models/getLocationsParams.interface';
 
 @Component({
   selector: 'app-cities',
