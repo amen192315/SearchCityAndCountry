@@ -43,7 +43,7 @@ import {
 } from '@angular/material/paginator';
 import { ApiResponse } from '../../core/models/apiResponse.interface';
 import { TranslocoDirective } from '@jsverse/transloco';
-import { GetParams } from '../../core/models/getParams.interface';
+import { GetLocationsParams } from '../../core/models/GetLocationsParams.interface';
 
 @Component({
   selector: 'app-cities',
@@ -98,7 +98,7 @@ export class CitiesComponent implements OnInit {
   );
 
   //query параметры
-  private readonly queryParams = signal<GetParams>({
+  private readonly queryParams = signal<GetLocationsParams>({
     offset: this.offset(),
     limit: this.pageSize(),
   });
@@ -161,7 +161,7 @@ export class CitiesComponent implements OnInit {
   }
   //метод прогрузки данных (старался убрать дублирующий код)
   private loadCities(
-    params?: Partial<GetParams>
+    params?: Partial<GetLocationsParams>
   ): Observable<ApiResponse<CityData>> {
     this.isLoading.set(true);
 

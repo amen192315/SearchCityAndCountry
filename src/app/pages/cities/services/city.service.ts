@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { ApiResponse } from '../../../core/models/apiResponse.interface';
 import { CityData } from '../models/city.interface';
-import { GetParams } from '../../../core/models/getParams.interface';
+import { GetLocationsParams } from '../../../core/models/GetLocationsParams.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -16,7 +16,9 @@ export class CitiesService {
   constructor() {}
 
   //получение всех городов
-  getCities(params: GetParams = {}): Observable<ApiResponse<CityData>> {
+  getCities(
+    params: GetLocationsParams = {}
+  ): Observable<ApiResponse<CityData>> {
     return this.http.get<ApiResponse<CityData>>(this.endpoint, { params });
   }
 

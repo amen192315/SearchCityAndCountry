@@ -1,4 +1,4 @@
-export interface GetParams {
+export interface GetLocationsParams {
   offset?: number;
   limit?: number;
   namePrefix?: string;

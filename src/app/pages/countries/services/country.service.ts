@@ -3,7 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { CountryData } from '../models/country.interface';
 import { ApiResponse } from '../../../core/models/apiResponse.interface';
 import { Observable } from 'rxjs';
-import { GetParams } from '../../../core/models/getParams.interface';
+import { GetLocationsParams } from '../../../core/models/GetLocationsParams.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -15,7 +15,9 @@ export class CountriesService {
 
   constructor() {}
 
-  getCountries(params: GetParams = {}): Observable<ApiResponse<CountryData>> {
+  getCountries(
+    params: GetLocationsParams = {}
+  ): Observable<ApiResponse<CountryData>> {
     return this.http.get<ApiResponse<CountryData>>(this.endpoint, {
       params: new HttpParams().appendAll(params),
     });

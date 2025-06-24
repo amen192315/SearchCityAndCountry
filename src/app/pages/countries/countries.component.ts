@@ -18,7 +18,7 @@ import {
   tap,
 } from 'rxjs';
 import { CountriesService } from './services/country.service';
-import { GetParams } from '../../core/models/getParams.interface';
+import { GetLocationsParams } from '../../core/models/GetLocationsParams.interface';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
@@ -32,7 +32,6 @@ import {
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
 import { CountryData } from './models/country.interface';
-import { NavLinksComponent } from '../../core/components/nav-links/nav-buttons.component';
 import {
   MatPaginator,
   MatPaginatorModule,
@@ -95,7 +94,7 @@ export class CountriesComponent implements OnInit {
   //текущее зн-е инпута
   private currentFilter: string | null = null;
   //query параметры
-  private readonly queryParams = signal<GetParams>({
+  private readonly queryParams = signal<GetLocationsParams>({
     offset: this.offset(),
     limit: this.pageSize(),
   });
@@ -142,7 +141,7 @@ export class CountriesComponent implements OnInit {
   }
   //метод прогрузки данных (старался убрать дублирующий код)
   private loadCountries(
-    params?: Partial<GetParams>
+    params?: Partial<GetLocationsParams>
   ): Observable<ApiResponse<CountryData>> {
     this.isLoading.set(true);
     this.updateQueryParams();
