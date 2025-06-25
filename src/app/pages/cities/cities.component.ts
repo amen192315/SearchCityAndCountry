@@ -52,7 +52,7 @@ import {
   CdkVirtualScrollViewport,
   ScrollingModule,
 } from '@angular/cdk/scrolling';
-import { PaginationService } from '../../core/services/pagination.service';
+import { PaginationService } from '../../core/services/pagination/pagination.service';
 
 @Component({
   selector: 'app-cities',

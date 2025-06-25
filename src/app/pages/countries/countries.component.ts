@@ -38,7 +38,7 @@ import {
 } from '@angular/material/paginator';
 import { ApiResponse } from '../../core/models/apiResponse.interface';
 import { TranslocoDirective, TranslocoModule } from '@jsverse/transloco';
-import { PaginationService } from '../../core/services/pagination.service';
+import { PaginationService } from '../../core/services/pagination/pagination.service';
 
 @Component({
   selector: 'app-countries',
