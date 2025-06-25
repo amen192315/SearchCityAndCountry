@@ -51,10 +51,7 @@ import {
   MatAutocompleteTrigger,
 } from '@angular/material/autocomplete';
 import { MatOptionModule } from '@angular/material/core';
-import {
-  CdkVirtualScrollViewport,
-  ScrollingModule,
-} from '@angular/cdk/scrolling';
+import { ScrollingModule } from '@angular/cdk/scrolling';
 import { PaginationService } from '../../core/services/pagination/pagination.service';
 import { CountriesService } from '../countries/services/country.service';
 import { CountryData } from '../countries/models/country.interface';
@@ -173,9 +170,11 @@ export class CitiesComponent implements OnInit {
         debounceTime(400),
         filter(() => this.searchForm.controls.countryInput.valid),
         tap(() => this.isCountriesLoading.set(true)),
-        switchMap((value) =>
-          this.loadCountries({ namePrefix: value || undefined, limit: 10 })
-        ),
+        switchMap((value) => {
+          return value
+            ? this.loadCountries({ namePrefix: value || undefined, limit: 10 })
+            : this.loadCountries();
+        }),
         finalize(() => this.isCountriesLoading.set(false)),
         takeUntilDestroyed(this.destroyRef)
       )
@@ -266,7 +265,7 @@ export class CitiesComponent implements OnInit {
       this.router.navigate(['/cities']);
     });
   }
-
+  //показать данные в попап
   viewCity(wikiID: number) {
     this.dataService
       .cityDetailsPopup(wikiID)
@@ -283,7 +282,7 @@ export class CitiesComponent implements OnInit {
         },
       });
   }
-
+  //изменить данные в попап
   editItem(city: CityData) {
     const dialogRef = this.dialog.open(CityEditPopupComponent, {
       width: '600px',
@@ -295,5 +294,9 @@ export class CitiesComponent implements OnInit {
         this.updateCity(city.wikiDataId, result);
       }
     });
+  }
+
+  ngOnDestroy() {
+    this.paginationService.reset();
   }
 }

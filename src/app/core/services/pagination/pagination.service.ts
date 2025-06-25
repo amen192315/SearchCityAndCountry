@@ -46,5 +46,7 @@ export class PaginationService {
   //cброс
   reset(): void {
     this._offset.set(0);
+    this._pageSize.set(5);
+    this._totalCount.set(0);
   }
 }

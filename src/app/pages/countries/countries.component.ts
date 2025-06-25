@@ -154,4 +154,7 @@ export class CountriesComponent implements OnInit {
   goToCities(countryCode: string): void {
     this.router.navigate(['/cities'], { queryParams: { countryCode } });
   }
+  ngOnDestroy() {
+    this.paginationService.reset();
+  }
 }
