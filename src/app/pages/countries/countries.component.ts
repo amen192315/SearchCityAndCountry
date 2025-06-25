@@ -145,6 +145,7 @@ export class CountriesComponent implements OnInit {
     );
   }
 
+  //пагинатор
   onPageChange(event: PageEvent): void {
     this.paginationService.handlePageChange(event);
     this.loadData();

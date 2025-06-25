@@ -186,6 +186,7 @@ export class CitiesComponent implements OnInit {
 
   onScroll(val: any): void {}
 
+  //пагинатор
   onPageChange(event: PageEvent): void {
     this.paginationService.handlePageChange(event);
     this.loadCities().subscribe();
