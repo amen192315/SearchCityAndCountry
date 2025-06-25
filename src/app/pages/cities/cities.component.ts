@@ -52,6 +52,7 @@ import {
   CdkVirtualScrollViewport,
   ScrollingModule,
 } from '@angular/cdk/scrolling';
+import { PaginationService } from '../../core/services/pagination.service';
 
 @Component({
   selector: 'app-cities',
@@ -80,15 +81,16 @@ export class CitiesComponent implements OnInit {
   @Input() countryCode?: string;
 
   @ViewChild(CdkVirtualScrollViewport) viewport!: CdkVirtualScrollViewport;
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   private hasMoreData = signal(true);
-
   private readonly dataService = inject(CitiesService);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
   private readonly dialog = inject(MatDialog);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  readonly paginationService = inject(PaginationService);
 
   //---material ui данные----
   readonly displayedColumns: string[] = [
@@ -101,24 +103,8 @@ export class CitiesComponent implements OnInit {
   readonly dataSource = signal<CityData[]>([]);
   //------------------------
 
-  //данные для пагинатора
-  readonly pageSize = signal(5);
-  readonly offset = signal(0);
-  readonly totalCount = signal(0);
-  //---------------------
-
   readonly isLoading = signal(false);
-
   public firstCityName!: string;
-  public pageIndex = computed(() =>
-    Math.floor(this.offset() / this.pageSize())
-  );
-
-  //query параметры
-  private readonly queryParams = signal<GetLocationsParams>({
-    offset: this.offset(),
-    limit: this.pageSize(),
-  });
 
   readonly searchForm: FormGroup<{ searchInput: FormControl<string | null> }> =
     this.fb.group({
@@ -139,7 +125,7 @@ export class CitiesComponent implements OnInit {
         tap((res) => {
           this.isLoading.set(false);
           this.firstCityName = res.data[0].country;
-          this.totalCount.set(res.metadata.totalCount);
+          this.paginationService.setTotalCount(res.metadata.totalCount);
         }),
         takeUntilDestroyed(this.destroyRef)
       )
@@ -157,14 +143,14 @@ export class CitiesComponent implements OnInit {
         tap((res) => {
           this.isLoading.set(true);
           this.currentFilter = res.searchInput || null;
-          this.updateQueryParams();
+          this.paginationService.reset();
         }),
         switchMap(() => {
           return this.loadCities();
         }),
         tap((res) => {
           this.isLoading.set(false);
-          this.totalCount.set(res.metadata.totalCount);
+          this.paginationService.setTotalCount(res.metadata.totalCount);
         }),
         takeUntilDestroyed(this.destroyRef),
         finalize(() => this.isLoading.set(false))
@@ -176,68 +162,35 @@ export class CitiesComponent implements OnInit {
         },
       });
   }
-  //метод прогрузки данных (старался убрать дублирующий код)
+
   private loadCities(
     params?: Partial<GetLocationsParams>
   ): Observable<ApiResponse<CityData>> {
-    // Убрали принудительный сброс offset
     this.isLoading.set(true);
 
     const queryParams = {
-      ...this.queryParams(),
+      ...this.paginationService.getQueryParams(),
       ...(this.currentFilter ? { namePrefix: this.currentFilter } : {}),
       ...(this.countryCode ? { countryIds: this.countryCode } : {}),
-      ...params, // Добавляем переданные параметры
+      ...params,
     };
 
     return this.dataService.getCities(queryParams).pipe(
       tap((res: ApiResponse<CityData>) => {
-        this.dataSource.set(res.data); // Всегда заменяем данные для пагинации
-        this.totalCount.set(res.metadata.totalCount);
+        this.dataSource.set(res.data);
+        this.paginationService.setTotalCount(res.metadata.totalCount);
       }),
       finalize(() => this.isLoading.set(false))
     );
   }
-  onScroll(): void {
-    if (this.isLoading() || !this.hasMoreData()) return;
 
-    const viewport = this.viewport;
-    const end = viewport.getRenderedRange().end;
-    const total = viewport.getDataLength();
+  onScroll(val: any): void {}
 
-    // Если приближаемся к концу списка
-    if (end === total) {
-      this.offset.update((prev) => prev + this.pageSize());
-      this.updateQueryParams();
-      this.loadCities({}).subscribe();
-    }
-  }
-
-  // пагинатор
   onPageChange(event: PageEvent): void {
-    const newPageIndex = event.pageIndex;
-    const newPageSize = event.pageSize;
-
-    const newOffset = newPageIndex * newPageSize;
-
-    this.pageSize.set(newPageSize);
-    this.offset.set(newOffset);
-    this.updateQueryParams();
-    this.loadCities({
-      offset: newOffset,
-      limit: newPageSize,
-    }).subscribe();
+    this.paginationService.handlePageChange(event);
+    this.loadCities().subscribe();
   }
 
-  //обновляем данные для query параметрова
-  private updateQueryParams(): void {
-    this.queryParams.set({
-      offset: this.offset(),
-      limit: this.pageSize(),
-    });
-  }
-
-  //Обновляем данные в таблице
   private updateCity(wikiDataId: string, updatedData: Partial<CityData>) {
     const updatedCities = this.dataSource().map((city) =>
       city.wikiDataId === wikiDataId ? { ...city, ...updatedData } : city
@@ -251,7 +204,6 @@ export class CitiesComponent implements OnInit {
     });
   }
 
-  //попап, показывает данные о городе
   viewCity(wikiID: number) {
     this.dataService
       .cityDetailsPopup(wikiID)
@@ -269,7 +221,6 @@ export class CitiesComponent implements OnInit {
       });
   }
 
-  //попап, изменяет данные о городе
   editItem(city: CityData) {
     const dialogRef = this.dialog.open(CityEditPopupComponent, {
       width: '600px',

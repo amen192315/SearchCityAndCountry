@@ -1,7 +1,6 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  computed,
   DestroyRef,
   inject,
   OnInit,
@@ -39,6 +38,7 @@ import {
 } from '@angular/material/paginator';
 import { ApiResponse } from '../../core/models/apiResponse.interface';
 import { TranslocoDirective, TranslocoModule } from '@jsverse/transloco';
+import { PaginationService } from '../../core/services/pagination.service';
 
 @Component({
   selector: 'app-countries',
@@ -65,6 +65,7 @@ export class CountriesComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  readonly paginationService = inject(PaginationService);
 
   //---material ui данные----
   readonly displayedColumns: string[] = [
@@ -76,28 +77,14 @@ export class CountriesComponent implements OnInit {
   ];
 
   readonly dataSource = signal<CountryData[]>([]);
-  //данные для пагинации
-  readonly pageSize = signal(5);
-  readonly offset = signal(0);
-  readonly totalCount = signal(0);
-
   readonly isLoading = signal(false);
-
-  public pageIndex = computed(() =>
-    Math.floor(this.offset() / this.pageSize())
-  );
 
   readonly searchForm: FormGroup<{ searchInput: FormControl<string | null> }> =
     this.fb.group({
       searchInput: ['', [Validators.pattern(/^[A-Za-z\s]*$/)]],
     });
-  //текущее зн-е инпута
+
   private currentFilter: string | null = null;
-  //query параметры
-  private readonly queryParams = signal<GetLocationsParams>({
-    offset: this.offset(),
-    limit: this.pageSize(),
-  });
 
   ngOnInit() {
     this.loadData();
@@ -109,15 +96,14 @@ export class CountriesComponent implements OnInit {
         tap((val) => {
           this.isLoading.set(true);
           this.currentFilter = val.searchInput || null;
-          this.updateQueryParams();
-          this.offset.set(0);
+          this.paginationService.reset();
         }),
         switchMap(() => {
           return this.loadCountries();
         }),
         tap((res) => {
           this.isLoading.set(false);
-          this.totalCount.set(res.metadata.totalCount);
+          this.paginationService.setTotalCount(res.metadata.totalCount);
         }),
         takeUntilDestroyed(this.destroyRef)
       )
@@ -131,7 +117,6 @@ export class CountriesComponent implements OnInit {
       });
   }
 
-  //начальные данные
   private loadData(): void {
     this.loadCountries()
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -139,15 +124,14 @@ export class CountriesComponent implements OnInit {
         error: (err) => console.error(err),
       });
   }
-  //метод прогрузки данных (старался убрать дублирующий код)
+
   private loadCountries(
     params?: Partial<GetLocationsParams>
   ): Observable<ApiResponse<CountryData>> {
     this.isLoading.set(true);
-    this.updateQueryParams();
 
     const queryParams = {
-      ...this.queryParams(),
+      ...this.paginationService.getQueryParams(),
       ...(this.currentFilter ? { namePrefix: this.currentFilter } : {}),
       ...params,
     };
@@ -155,32 +139,17 @@ export class CountriesComponent implements OnInit {
     return this.dataService.getCountries(queryParams).pipe(
       tap((res: ApiResponse<CountryData>) => {
         this.dataSource.set(res.data);
-        this.totalCount.set(res.metadata.totalCount);
+        this.paginationService.setTotalCount(res.metadata.totalCount);
       }),
       finalize(() => this.isLoading.set(false))
     );
   }
 
-  private updateQueryParams(): void {
-    this.queryParams.set({
-      offset: this.offset(),
-      limit: this.pageSize(),
-    });
-  }
-
-  //пагинатор
   onPageChange(event: PageEvent): void {
-    const newPageIndex = event.pageIndex;
-    const newPageSize = event.pageSize;
-
-    const newOffset = newPageIndex * newPageSize;
-
-    this.pageSize.set(newPageSize);
-    this.offset.set(newOffset);
+    this.paginationService.handlePageChange(event);
     this.loadData();
   }
 
-  //прокидываем данные в урл
   goToCities(countryCode: string): void {
     this.router.navigate(['/cities'], { queryParams: { countryCode } });
   }

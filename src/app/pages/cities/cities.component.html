@@ -16,7 +16,7 @@
         <cdk-virtual-scroll-viewport
           itemSize="50"
           class="autocomplete-viewport"
-          (scrolledIndexChange)="onScroll()"
+          (scrolledIndexChange)="onScroll($event)"
         >
           <mat-option
             *cdkVirtualFor="let city of dataSource()"
@@ -120,11 +120,13 @@
     ></tr>
   </table>
   <mat-paginator
-    [length]="totalCount()"
-    [pageSize]="pageSize()"
-    [pageIndex]="pageIndex()"
-    [pageSizeOptions]="[5, 10]"
-    showFirstLastButtons
+    [length]="paginationService.totalCount()"
+    [pageSize]="paginationService.pageSize()"
+    [pageIndex]="paginationService.pageIndex()"
+    [pageSizeOptions]="paginationService.paginatorConfig.pageSizeOptions"
+    [showFirstLastButtons]="
+      paginationService.paginatorConfig.showFirstLastButtons
+    "
     (page)="onPageChange($event)"
   >
   </mat-paginator>
