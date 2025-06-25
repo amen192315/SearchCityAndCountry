@@ -1,44 +1,53 @@
 <form *transloco="let t" class="form__search" [formGroup]="searchForm">
   <div class="wrapper__search_container">
     <div class="wrapper__search">
+      <input
+        type="text"
+        class="search"
+        [placeholder]="t('city_comp.search_city')"
+        formControlName="searchInput"
+      />
+      <img src="/icons/search.svg" alt="Поиск" class="search-icon" />
+    </div>
+    <div class="wrapper__search">
       <mat-form-field appearance="fill" class="w-100">
-        <mat-label>{{ t("city_comp.search_city") }}</mat-label>
+        <mat-label>тут</mat-label>
+
         <input
           type="text"
           matInput
-          [formControl]="searchForm.controls.searchInput"
-          [matAutocomplete]="auto"
-          [placeholder]="t('city_comp.search_city')"
+          formControlName="countryInput"
+          [matAutocomplete]="autoCountry"
+          placeholder="так"
         />
-        <mat-icon matSuffix>search</mat-icon>
+
+        <mat-icon matSuffix>public</mat-icon>
       </mat-form-field>
-      <mat-autocomplete #auto="matAutocomplete">
+
+      <mat-autocomplete
+        #autoCountry="matAutocomplete"
+        (optionSelected)="onCountrySelected($event.option.value)"
+      >
         <cdk-virtual-scroll-viewport
           itemSize="50"
           class="autocomplete-viewport"
-          (scrolledIndexChange)="onScroll($event)"
+          (scrolledIndexChange)="onCountryScroll($event)"
         >
           <mat-option
-            *cdkVirtualFor="let city of dataSource()"
-            [value]="city.name"
+            *cdkVirtualFor="let c of countriesData()"
+            [value]="c.code"
           >
-            {{ city.name }} ({{ city.country }})
+            {{ c.name }} ({{ c.code }})
           </mat-option>
-          <mat-option *ngIf="isLoading()">
-            <mat-spinner diameter="30"></mat-spinner>
-          </mat-option>
+          @if(isCountriesLoading()){
+          <div *transloco="let t" class="loading-state">
+            <div class="custom-spinner-countries"></div>
+            <span>{{ t("loading_data") }}</span>
+          </div>
+          }
         </cdk-virtual-scroll-viewport>
       </mat-autocomplete>
     </div>
-
-    @if (!!countryCode) {
-    <div>
-      <button class="filter-button" mat-raised-button (click)="closeFilter()">
-        <mat-icon class="close-icon">close</mat-icon>
-        {{ firstCityName }}
-      </button>
-    </div>
-    }
   </div>
   @if (searchForm.invalid) {
   <div class="error-message">{{ t("latin") }}</div>

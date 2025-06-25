@@ -53,6 +53,8 @@ import {
   ScrollingModule,
 } from '@angular/cdk/scrolling';
 import { PaginationService } from '../../core/services/pagination/pagination.service';
+import { CountriesService } from '../countries/services/country.service';
+import { CountryData } from '../countries/models/country.interface';
 
 @Component({
   selector: 'app-cities',
@@ -104,10 +106,20 @@ export class CitiesComponent implements OnInit {
   readonly isLoading = signal(false);
   public firstCityName!: string;
 
-  readonly searchForm: FormGroup<{ searchInput: FormControl<string | null> }> =
-    this.fb.group({
-      searchInput: ['', [Validators.pattern(/^[A-Za-z\s]*$/)]],
-    });
+  private readonly countriesService = inject(CountriesService);
+
+  readonly countriesData = signal<CountryData[]>([]);
+  readonly isCountriesLoading = signal(false);
+
+  private selectedCountryCode: string | null = null;
+
+  readonly searchForm: FormGroup<{
+    searchInput: FormControl<string | null>;
+    countryInput: FormControl<string | null>;
+  }> = this.fb.group({
+    searchInput: ['', [Validators.pattern(/^[A-Za-z\s]*$/)]],
+    countryInput: ['', [Validators.pattern(/^[A-Za-z\s]*$/)]],
+  });
 
   private currentFilter: string | null = null;
 
@@ -159,30 +171,62 @@ export class CitiesComponent implements OnInit {
           console.error(err);
         },
       });
+    this.searchForm.controls.countryInput.valueChanges
+      .pipe(
+        debounceTime(400),
+        filter(() => this.searchForm.controls.countryInput.valid),
+        tap(() => {
+          this.isCountriesLoading.set(true);
+        }),
+        switchMap((value) =>
+          this.loadCountries({ namePrefix: value ?? '', limit: 10 })
+        ),
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.isCountriesLoading.set(false))
+      )
+      .subscribe({
+        next: (res) => this.countriesData.set(res.data),
+        error: (err) => console.error(err),
+      });
+  }
+  private loadCountries(
+    params: Partial<GetLocationsParams> = {}
+  ): Observable<ApiResponse<CountryData>> {
+    return this.countriesService.getCountries(params);
   }
 
+  onCountrySelected(code: string) {
+    // сохраняем ISO-код и перезагружаем города
+    this.selectedCountryCode = code;
+    this.paginationService.reset();
+    this.loadCities().subscribe();
+  }
+
+  /* опционально – для подгрузки при прокрутке списка стран */
+  onCountryScroll(event: number) {}
+
   private loadCities(
-    params?: Partial<GetLocationsParams>
+    params: Partial<GetLocationsParams> = {}
   ): Observable<ApiResponse<CityData>> {
     this.isLoading.set(true);
 
     const queryParams = {
       ...this.paginationService.getQueryParams(),
       ...(this.currentFilter ? { namePrefix: this.currentFilter } : {}),
-      ...(this.countryCode ? { countryIds: this.countryCode } : {}),
+      ...(this.selectedCountryCode
+        ? { countryIds: this.selectedCountryCode }
+        : {}),
       ...params,
     };
 
     return this.dataService.getCities(queryParams).pipe(
-      tap((res: ApiResponse<CityData>) => {
+      tap((res) => {
         this.dataSource.set(res.data);
         this.paginationService.setTotalCount(res.metadata.totalCount);
       }),
       finalize(() => this.isLoading.set(false))
     );
   }
-
-  onScroll(val: any): void {}
 
   //пагинатор
   onPageChange(event: PageEvent): void {
