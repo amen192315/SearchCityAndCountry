@@ -79,8 +79,6 @@ import { PaginationService } from '../../core/services/pagination/pagination.ser
 })
 export class CitiesComponent implements OnInit {
   @Input() countryCode?: string;
-
-  @ViewChild(CdkVirtualScrollViewport) viewport!: CdkVirtualScrollViewport;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   private hasMoreData = signal(true);
