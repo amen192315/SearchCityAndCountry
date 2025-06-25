@@ -84,7 +84,9 @@ import { CountryData } from '../countries/models/country.interface';
 })
 export class CitiesComponent implements OnInit {
   @Input() countryCode?: string;
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+
   private readonly dataService = inject(CitiesService);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
@@ -222,6 +224,7 @@ export class CitiesComponent implements OnInit {
     this.loadCities().subscribe();
   }
 
+  //метод прогрузки данных
   private loadCities(
     params: Partial<GetLocationsParams> = {}
   ): Observable<ApiResponse<CityData>> {

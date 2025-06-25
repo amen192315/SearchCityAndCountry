@@ -83,7 +83,7 @@ export class CountriesComponent implements OnInit {
     this.fb.group({
       searchInput: ['', [Validators.pattern(/^[A-Za-z\s]*$/)]],
     });
-
+  //текущее зн-е инпута
   private currentFilter: string | null = null;
 
   ngOnInit() {
@@ -116,7 +116,7 @@ export class CountriesComponent implements OnInit {
         },
       });
   }
-
+  //начальные данные
   private loadData(): void {
     this.loadCountries()
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -124,7 +124,7 @@ export class CountriesComponent implements OnInit {
         error: (err) => console.error(err),
       });
   }
-
+  //метод прогрузки данных
   private loadCountries(
     params?: Partial<GetLocationsParams>
   ): Observable<ApiResponse<CountryData>> {

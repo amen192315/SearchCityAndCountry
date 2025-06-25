@@ -11,14 +11,13 @@
     </div>
     <div class="wrapper__search">
       <mat-form-field appearance="fill" class="w-100 country-field">
-        <mat-label>тут</mat-label>
+        <mat-label>{{ t("country_comp.search_country") }}</mat-label>
 
         <input
           type="text"
           matInput
           formControlName="countryInput"
           [matAutocomplete]="autoCountry"
-          placeholder="так"
           #countryTrigger="matAutocompleteTrigger"
           (focus)="openCountryPanel(countryTrigger)"
         />
