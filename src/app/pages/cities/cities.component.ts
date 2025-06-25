@@ -46,7 +46,10 @@ import { TranslocoDirective } from '@jsverse/transloco';
 import { GetLocationsParams } from '../../core/models/getLocationsParams.interface';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import {
+  MatAutocompleteModule,
+  MatAutocompleteTrigger,
+} from '@angular/material/autocomplete';
 import { MatOptionModule } from '@angular/material/core';
 import {
   CdkVirtualScrollViewport,
@@ -82,8 +85,6 @@ import { CountryData } from '../countries/models/country.interface';
 export class CitiesComponent implements OnInit {
   @Input() countryCode?: string;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
-
-  private hasMoreData = signal(true);
   private readonly dataService = inject(CitiesService);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
@@ -126,38 +127,33 @@ export class CitiesComponent implements OnInit {
   ngOnInit() {
     this.route.queryParams
       .pipe(
-        tap(() => {
+        tap((params) => {
           this.isLoading.set(true);
+          this.selectedCountryCode = params['countryCode'] ?? null;
         }),
-        switchMap(() => {
-          return this.loadCities();
-        }),
+        switchMap(() => this.loadCities()),
         tap((res) => {
           this.isLoading.set(false);
-          this.firstCityName = res.data[0].country;
+          this.firstCityName = res.data[0]?.country ?? '';
           this.paginationService.setTotalCount(res.metadata.totalCount);
         }),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
         next: (res) => this.dataSource.set(res.data),
-        error: (err) => {
-          console.error(err);
-        },
+        error: console.error,
       });
 
-    this.searchForm.valueChanges
+    this.searchForm.controls.searchInput.valueChanges
       .pipe(
         debounceTime(400),
-        filter(() => this.searchForm.valid),
-        tap((res) => {
-          this.isLoading.set(true);
-          this.currentFilter = res.searchInput || null;
+        filter(() => this.searchForm.controls.searchInput.valid),
+        tap((value) => {
+          this.currentFilter = value || null;
           this.paginationService.reset();
+          this.isLoading.set(true);
         }),
-        switchMap(() => {
-          return this.loadCities();
-        }),
+        switchMap(() => this.loadCities()),
         tap((res) => {
           this.isLoading.set(false);
           this.paginationService.setTotalCount(res.metadata.totalCount);
@@ -167,26 +163,23 @@ export class CitiesComponent implements OnInit {
       )
       .subscribe({
         next: (res) => this.dataSource.set(res.data),
-        error: (err) => {
-          console.error(err);
-        },
+        error: console.error,
       });
+
     this.searchForm.controls.countryInput.valueChanges
       .pipe(
         debounceTime(400),
         filter(() => this.searchForm.controls.countryInput.valid),
-        tap(() => {
-          this.isCountriesLoading.set(true);
-        }),
+        tap(() => this.isCountriesLoading.set(true)),
         switchMap((value) =>
-          this.loadCountries({ namePrefix: value ?? '', limit: 10 })
+          this.loadCountries({ namePrefix: value || undefined, limit: 10 })
         ),
-        takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.isCountriesLoading.set(false))
+        finalize(() => this.isCountriesLoading.set(false)),
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
         next: (res) => this.countriesData.set(res.data),
-        error: (err) => console.error(err),
+        error: console.error,
       });
   }
   private loadCountries(
@@ -195,15 +188,39 @@ export class CitiesComponent implements OnInit {
     return this.countriesService.getCountries(params);
   }
 
+  // тригер на открытие dropdawn---------
+  private loadCountriesIfNeeded(): Observable<any> | null {
+    if (this.countriesData().length === 0) {
+      this.isCountriesLoading.set(true);
+      return this.loadCountries({ limit: 10 }).pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.isCountriesLoading.set(false))
+      );
+    }
+    return null;
+  }
+  openCountryPanel(trigger: MatAutocompleteTrigger) {
+    const load$ = this.loadCountriesIfNeeded();
+
+    if (load$) {
+      load$.subscribe({
+        next: (res) => {
+          this.countriesData.set(res.data);
+          trigger.openPanel();
+        },
+        error: console.error,
+      });
+    } else {
+      trigger.openPanel();
+    }
+  }
+  //----------------------------
+
   onCountrySelected(code: string) {
-    // сохраняем ISO-код и перезагружаем города
     this.selectedCountryCode = code;
     this.paginationService.reset();
     this.loadCities().subscribe();
   }
-
-  /* опционально – для подгрузки при прокрутке списка стран */
-  onCountryScroll(event: number) {}
 
   private loadCities(
     params: Partial<GetLocationsParams> = {}

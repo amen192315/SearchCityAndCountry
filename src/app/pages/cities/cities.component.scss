@@ -3,6 +3,7 @@
   .wrapper__search_container{
     display: flex;
     justify-content: space-between;
+    align-items: center;
   }
   .wrapper__search {
     position: relative;
@@ -27,11 +28,18 @@
     .search-icon {
       position: absolute;
       left: 12px;
-      top: 16%;
+      top: 27%;
       width: 16px;
       height: 16px;
     }
   }
+}
+.country-field .mat-form-field-flex {
+  background-color: #ffffff;
+}
+::ng-deep .mat-autocomplete-panel,
+::ng-deep .autocomplete-viewport {
+  background-color: #ffffff;
 }
 .custom-spinner-countries{
   width: 20px;

@@ -10,7 +10,7 @@
       <img src="/icons/search.svg" alt="Поиск" class="search-icon" />
     </div>
     <div class="wrapper__search">
-      <mat-form-field appearance="fill" class="w-100">
+      <mat-form-field appearance="fill" class="w-100 country-field">
         <mat-label>тут</mat-label>
 
         <input
@@ -19,6 +19,8 @@
           formControlName="countryInput"
           [matAutocomplete]="autoCountry"
           placeholder="так"
+          #countryTrigger="matAutocompleteTrigger"
+          (focus)="openCountryPanel(countryTrigger)"
         />
 
         <mat-icon matSuffix>public</mat-icon>
@@ -31,7 +33,6 @@
         <cdk-virtual-scroll-viewport
           itemSize="50"
           class="autocomplete-viewport"
-          (scrolledIndexChange)="onCountryScroll($event)"
         >
           <mat-option
             *cdkVirtualFor="let c of countriesData()"
@@ -39,12 +40,6 @@
           >
             {{ c.name }} ({{ c.code }})
           </mat-option>
-          @if(isCountriesLoading()){
-          <div *transloco="let t" class="loading-state">
-            <div class="custom-spinner-countries"></div>
-            <span>{{ t("loading_data") }}</span>
-          </div>
-          }
         </cdk-virtual-scroll-viewport>
       </mat-autocomplete>
     </div>
