@@ -3,6 +3,7 @@ import {
   Component,
   DestroyRef,
   inject,
+  OnDestroy,
   OnInit,
   signal,
   ViewChild,
@@ -58,7 +59,7 @@ import { PaginationService } from '../../core/services/pagination/pagination.ser
   styleUrl: './countries.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CountriesComponent implements OnInit {
+export class CountriesComponent implements OnInit, OnDestroy {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   private readonly dataService = inject(CountriesService);

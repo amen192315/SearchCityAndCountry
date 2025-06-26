@@ -1,10 +1,10 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  computed,
   DestroyRef,
   inject,
   Input,
+  OnDestroy,
   OnInit,
   signal,
   ViewChild,
@@ -79,7 +79,7 @@ import { CountryData } from '../countries/models/country.interface';
   styleUrl: './cities.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CitiesComponent implements OnInit {
+export class CitiesComponent implements OnInit, OnDestroy {
   @Input() countryCode?: string;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
