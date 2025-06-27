@@ -190,7 +190,7 @@ export class CitiesComponent implements OnInit, OnDestroy {
   }
 
   // тригер на открытие dropdawn---------
-  private loadCountriesIfNeeded(): Observable<any> | null {
+  private loadCountriesIfNeeded(): Observable<ApiResponse<CountryData>> | null {
     if (this.countriesData().length === 0) {
       this.isCountriesLoading.set(true);
       return this.loadCountries({ limit: 10 }).pipe(
