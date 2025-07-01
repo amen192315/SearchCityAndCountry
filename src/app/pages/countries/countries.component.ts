@@ -40,6 +40,7 @@ import {
 import { ApiResponse } from '../../core/models/apiResponse.interface';
 import { TranslocoDirective, TranslocoModule } from '@jsverse/transloco';
 import { PaginationService } from '../../core/services/pagination/pagination.service';
+import { SharedTableComponent } from '../../core/components/shared-table/shared-table.component';
 
 @Component({
   selector: 'app-countries',
@@ -59,16 +60,11 @@ import { PaginationService } from '../../core/services/pagination/pagination.ser
   styleUrl: './countries.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CountriesComponent implements OnInit, OnDestroy {
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-
-  private readonly dataService = inject(CountriesService);
-  private readonly fb = inject(FormBuilder);
+export class CountriesComponent extends SharedTableComponent<CountryData> {
   private readonly router = inject(Router);
-  private readonly destroyRef = inject(DestroyRef);
-  readonly paginationService = inject(PaginationService);
+  private readonly countryService = inject(CountriesService);
 
-  //---material ui данные----
+  // material ui данные
   readonly displayedColumns: string[] = [
     'wikiDataId',
     'icon',
@@ -76,57 +72,8 @@ export class CountriesComponent implements OnInit, OnDestroy {
     'code',
     'currencyCodes',
   ];
-
-  readonly dataSource = signal<CountryData[]>([]);
-  readonly isLoading = signal(false);
-
-  readonly searchForm: FormGroup<{ searchInput: FormControl<string | null> }> =
-    this.fb.group({
-      searchInput: ['', [Validators.pattern(/^[A-Za-z\s]*$/)]],
-    });
-  //текущее зн-е инпута
-  private currentFilter: string | null = null;
-
-  ngOnInit() {
-    this.loadData();
-
-    this.searchForm.valueChanges
-      .pipe(
-        debounceTime(400),
-        filter(() => this.searchForm.valid),
-        tap((val) => {
-          this.isLoading.set(true);
-          this.currentFilter = val.searchInput || null;
-          this.paginationService.reset();
-        }),
-        switchMap(() => {
-          return this.loadCountries();
-        }),
-        tap((res) => {
-          this.isLoading.set(false);
-          this.paginationService.setTotalCount(res.metadata.totalCount);
-        }),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe({
-        next: (res: ApiResponse<CountryData>) => {
-          this.dataSource.set(res.data);
-        },
-        error: (err) => {
-          console.error(err);
-        },
-      });
-  }
-  //начальные данные
-  private loadData(): void {
-    this.loadCountries()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        error: (err) => console.error(err),
-      });
-  }
-  //метод прогрузки данных
-  private loadCountries(
+  //-------------------
+  loadData(
     params?: Partial<GetLocationsParams>
   ): Observable<ApiResponse<CountryData>> {
     this.isLoading.set(true);
@@ -137,7 +84,7 @@ export class CountriesComponent implements OnInit, OnDestroy {
       ...params,
     };
 
-    return this.dataService.getCountries(queryParams).pipe(
+    return this.countryService.getCountries(queryParams).pipe(
       tap((res: ApiResponse<CountryData>) => {
         this.dataSource.set(res.data);
         this.paginationService.setTotalCount(res.metadata.totalCount);
@@ -145,17 +92,7 @@ export class CountriesComponent implements OnInit, OnDestroy {
       finalize(() => this.isLoading.set(false))
     );
   }
-
-  //пагинатор
-  onPageChange(event: PageEvent): void {
-    this.paginationService.handlePageChange(event);
-    this.loadData();
-  }
-
   goToCities(countryCode: string): void {
     this.router.navigate(['/cities'], { queryParams: { countryCode } });
-  }
-  ngOnDestroy() {
-    this.paginationService.reset();
   }
 }

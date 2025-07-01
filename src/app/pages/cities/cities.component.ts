@@ -169,17 +169,25 @@ export class CitiesComponent implements OnInit, OnDestroy {
       .pipe(
         debounceTime(400),
         filter(() => this.searchForm.controls.countryInput.valid),
-        tap(() => this.isCountriesLoading.set(true)),
+        tap((value) => {
+          this.isCountriesLoading.set(true);
+          if (!value) {
+            this.selectedCountryCode = null;
+          }
+        }),
         switchMap((value) => {
           return value
-            ? this.loadCountries({ namePrefix: value || undefined, limit: 10 })
-            : this.loadCountries();
+            ? this.loadCountries({ namePrefix: value, limit: 10 })
+            : this.loadCountries({});
         }),
         finalize(() => this.isCountriesLoading.set(false)),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
-        next: (res) => this.countriesData.set(res.data),
+        next: (res) => {
+          this.countriesData.set(res.data);
+          console.log(res);
+        },
         error: console.error,
       });
   }
@@ -217,7 +225,7 @@ export class CitiesComponent implements OnInit, OnDestroy {
   }
   //----------------------------
 
-  onCountrySelected(code: string) {
+  onCountrySelected(code: string | null) {
     this.selectedCountryCode = code;
     this.paginationService.reset();
     this.loadCities().subscribe();

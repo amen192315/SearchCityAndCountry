@@ -36,13 +36,12 @@ export class PaginationService {
   }
 
   //текущие параметры
-  getQueryParams() {
+  getQueryParams(): Record<string, number> {
     return {
       offset: this._offset(),
       limit: this._pageSize(),
     };
   }
-
   //cброс
   reset(): void {
     this._offset.set(0);
