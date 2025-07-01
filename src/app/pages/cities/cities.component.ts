@@ -124,24 +124,16 @@ export class CitiesComponent implements OnInit, OnDestroy {
   private currentFilter: string | null = null;
 
   ngOnInit() {
-    this.route.queryParams
+    this.route.data
       .pipe(
-        tap((params) => {
-          this.isLoading.set(true);
-          this.selectedCountryCode = params['countryCode'] ?? null;
-        }),
-        switchMap(() => this.loadCities()),
-        tap((res) => {
-          this.isLoading.set(false);
-          this.firstCityName = res.data[0]?.country ?? '';
-          this.paginationService.setTotalCount(res.metadata.totalCount);
+        tap(({ citiesData }) => {
+          this.dataSource.set(citiesData.data);
+          this.paginationService.setTotalCount(citiesData.metadata.totalCount);
+          this.firstCityName = citiesData.data[0]?.country ?? '';
         }),
         takeUntilDestroyed(this.destroyRef)
       )
-      .subscribe({
-        next: (res) => this.dataSource.set(res.data),
-        error: console.error,
-      });
+      .subscribe();
 
     this.searchForm.controls.searchInput.valueChanges
       .pipe(
