@@ -43,7 +43,7 @@
       </mat-autocomplete>
     </div>
   </div>
-  @if (searchForm.controls.searchInput.invalid) {
+  @if (searchForm.controls['countryInput'].invalid) {
   <div class="error-message">{{ t("latin") }}</div>
   }
 </form>

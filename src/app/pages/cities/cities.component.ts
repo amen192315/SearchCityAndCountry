@@ -1,13 +1,8 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  DestroyRef,
   inject,
-  Input,
-  OnDestroy,
-  OnInit,
   signal,
-  ViewChild,
 } from '@angular/core';
 import { CitiesService } from './services/city.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -21,13 +16,7 @@ import {
   tap,
 } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { ReactiveFormsModule, Validators } from '@angular/forms';
 import { CustomNumber } from '../../core/pipes/custom-number.pipe';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
@@ -36,11 +25,7 @@ import { CityDetailsPopupComponent } from './components/city-details-popup/city-
 import { ActivatedRoute, Router } from '@angular/router';
 import { CityEditPopupComponent } from './components/city-edit-popup/city-edit-popup.component';
 import { CityData } from './models/city.interface';
-import {
-  PageEvent,
-  MatPaginator,
-  MatPaginatorModule,
-} from '@angular/material/paginator';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { ApiResponse } from '../../core/models/apiResponse.interface';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { GetLocationsParams } from '../../core/models/getLocationsParams.interface';
@@ -52,9 +37,9 @@ import {
 } from '@angular/material/autocomplete';
 import { MatOptionModule } from '@angular/material/core';
 import { ScrollingModule } from '@angular/cdk/scrolling';
-import { PaginationService } from '../../core/services/pagination/pagination.service';
 import { CountriesService } from '../countries/services/country.service';
 import { CountryData } from '../countries/models/country.interface';
+import { SharedTableComponent } from '../../core/components/shared-table/shared-table.component';
 
 @Component({
   selector: 'app-cities',
@@ -79,20 +64,13 @@ import { CountryData } from '../countries/models/country.interface';
   styleUrl: './cities.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CitiesComponent implements OnInit, OnDestroy {
-  @Input() countryCode?: string;
-
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-
+export class CitiesComponent extends SharedTableComponent<CityData> {
   private readonly dataService = inject(CitiesService);
-  private readonly fb = inject(FormBuilder);
-  private readonly destroyRef = inject(DestroyRef);
   private readonly dialog = inject(MatDialog);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  readonly paginationService = inject(PaginationService);
+  private readonly countriesService = inject(CountriesService);
 
-  //---material ui данные----
   readonly displayedColumns: string[] = [
     'country',
     'name',
@@ -100,67 +78,46 @@ export class CitiesComponent implements OnInit, OnDestroy {
     'population',
     'actions',
   ];
-  readonly dataSource = signal<CityData[]>([]);
-  //------------------------
 
-  readonly isLoading = signal(false);
   public firstCityName!: string;
-
-  private readonly countriesService = inject(CountriesService);
-
   readonly countriesData = signal<CountryData[]>([]);
   readonly isCountriesLoading = signal(false);
-
   private selectedCountryCode: string | null = null;
 
-  readonly searchForm: FormGroup<{
-    searchInput: FormControl<string | null>;
-    countryInput: FormControl<string | null>;
-  }> = this.fb.group({
-    searchInput: ['', [Validators.pattern(/^[A-Za-z\s]*$/)]],
-    countryInput: ['', [Validators.pattern(/^[A-Za-z\s]*$/)]],
-  });
+  constructor() {
+    super();
+    this.searchForm = this.fb.group({
+      searchInput: ['', [Validators.pattern(/^[A-Za-z\s]*$/)]],
+      countryInput: ['', [Validators.pattern(/^[A-Za-z\s]*$/)]],
+    });
+  }
 
-  private currentFilter: string | null = null;
+  override ngOnInit() {
+    super.ngOnInit();
 
-  ngOnInit() {
-    this.route.data
+    this.route.queryParams
       .pipe(
-        tap(({ citiesData }) => {
-          this.dataSource.set(citiesData.data);
-          this.paginationService.setTotalCount(citiesData.metadata.totalCount);
-          this.firstCityName = citiesData.data[0]?.country ?? '';
-        }),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe();
-
-    this.searchForm.controls.searchInput.valueChanges
-      .pipe(
-        debounceTime(400),
-        filter(() => this.searchForm.controls.searchInput.valid),
-        tap((value) => {
-          this.currentFilter = value || null;
-          this.paginationService.reset();
+        tap((params) => {
           this.isLoading.set(true);
+          this.selectedCountryCode = params['countryCode'] ?? null;
         }),
-        switchMap(() => this.loadCities()),
+        switchMap(() => this.loadData()),
         tap((res) => {
           this.isLoading.set(false);
+          this.firstCityName = res.data[0]?.country ?? '';
           this.paginationService.setTotalCount(res.metadata.totalCount);
         }),
-        takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.isLoading.set(false))
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
         next: (res) => this.dataSource.set(res.data),
         error: console.error,
       });
 
-    this.searchForm.controls.countryInput.valueChanges
+    this.searchForm.controls['countryInput'].valueChanges
       .pipe(
         debounceTime(400),
-        filter(() => this.searchForm.controls.countryInput.valid),
+        filter(() => this.searchForm.controls['countryInput'].valid),
         tap((value) => {
           this.isCountriesLoading.set(true);
           if (!value) {
@@ -176,56 +133,13 @@ export class CitiesComponent implements OnInit, OnDestroy {
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
-        next: (res) => {
-          this.countriesData.set(res.data);
-          console.log(res);
-        },
+        next: (res) => this.countriesData.set(res.data),
         error: console.error,
       });
   }
-  private loadCountries(
-    params: Partial<GetLocationsParams> = {}
-  ): Observable<ApiResponse<CountryData>> {
-    return this.countriesService.getCountries(params);
-  }
 
-  // тригер на открытие dropdawn---------
-  private loadCountriesIfNeeded(): Observable<ApiResponse<CountryData>> | null {
-    if (this.countriesData().length === 0) {
-      this.isCountriesLoading.set(true);
-      return this.loadCountries({ limit: 10 }).pipe(
-        takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.isCountriesLoading.set(false))
-      );
-    }
-    return null;
-  }
-  openCountryPanel(trigger: MatAutocompleteTrigger) {
-    const load$ = this.loadCountriesIfNeeded();
-
-    if (load$) {
-      load$.subscribe({
-        next: (res) => {
-          this.countriesData.set(res.data);
-          trigger.openPanel();
-        },
-        error: console.error,
-      });
-    } else {
-      trigger.openPanel();
-    }
-  }
-  //----------------------------
-
-  onCountrySelected(code: string | null) {
-    this.selectedCountryCode = code;
-    this.paginationService.reset();
-    this.loadCities().subscribe();
-  }
-
-  //метод прогрузки данных
-  private loadCities(
-    params: Partial<GetLocationsParams> = {}
+  loadData(
+    params?: Partial<GetLocationsParams>
   ): Observable<ApiResponse<CityData>> {
     this.isLoading.set(true);
 
@@ -247,10 +161,43 @@ export class CitiesComponent implements OnInit, OnDestroy {
     );
   }
 
-  //пагинатор
-  onPageChange(event: PageEvent): void {
-    this.paginationService.handlePageChange(event);
-    this.loadCities().subscribe();
+  private loadCountries(
+    params: Partial<GetLocationsParams> = {}
+  ): Observable<ApiResponse<CountryData>> {
+    return this.countriesService.getCountries(params);
+  }
+
+  private loadCountriesIfNeeded(): Observable<ApiResponse<CountryData>> | null {
+    if (this.countriesData().length === 0) {
+      this.isCountriesLoading.set(true);
+      return this.loadCountries({ limit: 10 }).pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.isCountriesLoading.set(false))
+      );
+    }
+    return null;
+  }
+
+  openCountryPanel(trigger: MatAutocompleteTrigger) {
+    const load$ = this.loadCountriesIfNeeded();
+
+    if (load$) {
+      load$.subscribe({
+        next: (res) => {
+          this.countriesData.set(res.data);
+          trigger.openPanel();
+        },
+        error: console.error,
+      });
+    } else {
+      trigger.openPanel();
+    }
+  }
+
+  onCountrySelected(code: string | null) {
+    this.selectedCountryCode = code;
+    this.paginationService.reset();
+    this.loadData().subscribe();
   }
 
   private updateCity(wikiDataId: string, updatedData: Partial<CityData>) {
@@ -265,7 +212,7 @@ export class CitiesComponent implements OnInit, OnDestroy {
       this.router.navigate(['/cities']);
     });
   }
-  //показать данные в попап
+
   viewCity(wikiID: number) {
     this.dataService
       .cityDetailsPopup(wikiID)
@@ -282,7 +229,7 @@ export class CitiesComponent implements OnInit, OnDestroy {
         },
       });
   }
-  //изменить данные в попап
+
   editItem(city: CityData) {
     const dialogRef = this.dialog.open(CityEditPopupComponent, {
       width: '600px',
@@ -294,9 +241,5 @@ export class CitiesComponent implements OnInit, OnDestroy {
         this.updateCity(city.wikiDataId, result);
       }
     });
-  }
-
-  ngOnDestroy() {
-    this.paginationService.reset();
   }
 }

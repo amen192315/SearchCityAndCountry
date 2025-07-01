@@ -39,20 +39,14 @@ export abstract class SharedTableComponent<T> implements OnInit, OnDestroy {
 
   @Input() searchPlaceholder: string = '';
 
-  public searchForm!: FormGroup;
+  protected searchForm: FormGroup = this.fb.group({
+    searchInput: ['', Validators.pattern(/^[A-Za-z\s]*$/)],
+  });
   protected currentFilter: string | null = null;
 
   ngOnInit(): void {
-    this.initSearchForm();
     this.loadData().subscribe();
     this.setupSearch();
-  }
-
-  //инициализация формы
-  protected initSearchForm(): void {
-    this.searchForm = this.fb.group({
-      searchInput: ['', Validators.pattern(/^[A-Za-z\s]*$/)],
-    });
   }
 
   //подписка на изменение формы
