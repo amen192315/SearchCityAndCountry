@@ -1,45 +1,17 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  inject,
-  OnDestroy,
-  OnInit,
-  signal,
-  ViewChild,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
-import {
-  debounceTime,
-  filter,
-  finalize,
-  Observable,
-  switchMap,
-  tap,
-} from 'rxjs';
+import { finalize, Observable, tap } from 'rxjs';
 import { CountriesService } from './services/country.service';
 import { GetLocationsParams } from '../../core/models/getLocationsParams.interface';
 import { CommonModule } from '@angular/common';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
 import { CountryData } from './models/country.interface';
-import {
-  MatPaginator,
-  MatPaginatorModule,
-  PageEvent,
-} from '@angular/material/paginator';
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { ApiResponse } from '../../core/models/apiResponse.interface';
 import { TranslocoDirective, TranslocoModule } from '@jsverse/transloco';
-import { PaginationService } from '../../core/services/pagination/pagination.service';
 import { SharedTableComponent } from '../../core/components/shared-table/shared-table.component';
 
 @Component({
@@ -50,7 +22,6 @@ import { SharedTableComponent } from '../../core/components/shared-table/shared-
     MatIconModule,
     ReactiveFormsModule,
     MatProgressSpinnerModule,
-
     MatPaginatorModule,
     TranslocoDirective,
     TranslocoModule,
