@@ -16,10 +16,7 @@ import { debounceTime, filter, Observable, switchMap, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiResponse } from '../../models/apiResponse.interface';
 import { GetLocationsParams } from '../../models/getLocationsParams.interface';
-export interface TableColumn {
-  key: string;
-  header: string;
-}
+
 @Component({
   selector: 'app-shared-table',
   imports: [],
