@@ -86,6 +86,7 @@ export class CitiesComponent extends SharedTableComponent<CityData> {
 
   constructor() {
     super();
+    this.countriesInit.set(false);
     this.searchForm = this.fb.group({
       searchInput: ['', [Validators.pattern(/^[A-Za-z\s]*$/)]],
       countryInput: ['', [Validators.pattern(/^[A-Za-z\s]*$/)]],
@@ -101,7 +102,9 @@ export class CitiesComponent extends SharedTableComponent<CityData> {
           this.isLoading.set(true);
           this.selectedCountryCode = params['countryCode'] ?? null;
         }),
-        switchMap(() => this.loadData()),
+        switchMap(() => {
+          return this.loadData();
+        }),
         tap((res) => {
           this.isLoading.set(false);
           this.firstCityName = res.data[0]?.country ?? '';

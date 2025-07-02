@@ -36,6 +36,7 @@ export abstract class SharedTableComponent<T> implements OnInit, OnDestroy {
 
   readonly dataSource = signal<T[]>([]);
   readonly isLoading = signal(false);
+  protected countriesInit = signal(true);
 
   @Input() searchPlaceholder: string = '';
 
@@ -45,8 +46,10 @@ export abstract class SharedTableComponent<T> implements OnInit, OnDestroy {
   protected currentFilter: string | null = null;
 
   ngOnInit(): void {
-    this.loadData().subscribe();
     this.setupSearch();
+    if (this.countriesInit()) {
+      this.loadData().subscribe();
+    }
   }
 
   //подписка на изменение формы
