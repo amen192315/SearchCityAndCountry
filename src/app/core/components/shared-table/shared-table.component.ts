@@ -7,10 +7,9 @@ import {
   OnDestroy,
   OnInit,
   signal,
-  ViewChild,
 } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatPaginator, PageEvent } from '@angular/material/paginator';
+import { PageEvent } from '@angular/material/paginator';
 import { PaginationService } from '../../services/pagination/pagination.service';
 import { debounceTime, filter, Observable, switchMap, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -25,8 +24,6 @@ import { GetLocationsParams } from '../../models/getLocationsParams.interface';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export abstract class SharedTableComponent<T> implements OnInit, OnDestroy {
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-
   protected readonly fb = inject(FormBuilder);
   protected readonly destroyRef = inject(DestroyRef);
   protected readonly paginationService = inject(PaginationService);

@@ -203,17 +203,17 @@ export class CitiesComponent extends SharedTableComponent<CityData> {
     this.loadData().subscribe();
   }
 
+  closeFilter() {
+    this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+      this.router.navigate(['/cities']);
+    });
+  }
+
   private updateCity(wikiDataId: string, updatedData: Partial<CityData>) {
     const updatedCities = this.dataSource().map((city) =>
       city.wikiDataId === wikiDataId ? { ...city, ...updatedData } : city
     );
     this.dataSource.set(updatedCities);
-  }
-
-  closeFilter() {
-    this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
-      this.router.navigate(['/cities']);
-    });
   }
 
   viewCity(wikiID: number) {
